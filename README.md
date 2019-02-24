@@ -1,0 +1,2 @@
+# hopBot
+A trading bot
