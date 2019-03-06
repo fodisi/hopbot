@@ -1,2 +1,2 @@
 #!/bin/sh
-env node hopbot.js $@
+npx babel-node ./src/hopbot.js
