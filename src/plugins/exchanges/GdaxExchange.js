@@ -22,9 +22,9 @@ class GdaxExchange extends Exchange {
       this.wsUri = 'wss://ws-feed-public.sandbox.pro.coinbase.com';
     }
     this.auth = {
-      key: 'f98dca827e601f80fd7faed43432caf0',
-      secret: 'oR1Wa9TDcSHvv2tDeGbAorie+L9tkokRL8Pfu7iVzvhnXMQLeXk+mhg5hbery0DxeqmMzgNdzzv/wG2Z0jEtAw==',
-      passphrase: 'JQON4qVvE}x0Q6uQvNM^Ez60ONXNjRFk',
+      key: '',
+      secret: '',
+      passphrase: '',
     };
   }
 
