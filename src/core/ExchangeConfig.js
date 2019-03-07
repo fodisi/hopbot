@@ -15,6 +15,7 @@ const ConnectionStatus = {
   CONNECTING: 'CONNECTING', // Connecting to exchange
   CONNECTED: 'CONNECTED', // Connected to exchange
   CLOSED: 'CLOSED', // Disconnected from exchange
+  ERROR: 'ERROR', // Error when attempted to connect
 };
 
 const TradingMode = {
