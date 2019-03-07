@@ -1,11 +1,10 @@
 /* eslint-disable no-underscore-dangle */
-// import Exchange from '../../core/Exchange';
-// import { APIType, APIMode } from '../../core/ExchangeConfig';
 
+import { AuthenticatedClient, OrderbookSync } from 'gdax';
 import Exchange from '../../core/Exchange';
-import { APIType, APIMode } from '../../core/ExchangeConfig';
-
-const gdax = require('gdax');
+import { APIType, APIMode, ConnectionStatus } from '../../core/ExchangeConfig';
+import { logError, logInfo } from '../../core/logger';
+import { debugMode } from '../../core/engine';
 
 class GdaxExchange extends Exchange {
   constructor(options = {}) {
@@ -25,46 +24,84 @@ class GdaxExchange extends Exchange {
       key: 'f98dca827e601f80fd7faed43432caf0',
       secret: 'oR1Wa9TDcSHvv2tDeGbAorie+L9tkokRL8Pfu7iVzvhnXMQLeXk+mhg5hbery0DxeqmMzgNdzzv/wG2Z0jEtAw==',
       passphrase: 'JQON4qVvE}x0Q6uQvNM^Ez60ONXNjRFk',
+      // passphrase: 'JQON4qVvE}x0Q6uQvNM^Ez60ONXNjRF2',
     };
   }
 
-  async _connect() {
+  _connect() {
     try {
-      this.authClient = new gdax.AuthenticatedClient(
-        this.auth.key,
-        this.auth.secret,
-        this.auth.passphrase,
-        this.apiUri
-      );
-      console.log(this.authClient);
+      this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
+      debugMode && logInfo(this.authClient);
+      this.connectionStatus = this._loadOrderBook() ? ConnectionStatus.CONNECTED : ConnectionStatus.ERROR;
       return Promise.resolve(true);
-    } catch (error) {
-      return Promise.reject(error);
+    } catch (err) {
+      return Promise.reject(err);
     }
   }
 
-  async _loadOrderBook() {
+  _loadOrderBook() {
     if (!this._orderBook) {
       try {
-        this._orderBook = new gdax.OrderbookSync('LTC/USD', this.apiUri, this.wsUri, this.authClient);
-        return Promise.resolve(true);
-      } catch (error) {
-        return Promise.resolve(error);
+        debugMode && logInfo('Loading order book.');
+        debugMode && logInfo(`API URI: ${this.apiUri}`);
+        debugMode && logInfo(`WS URI: ${this.wsUri}`);
+        this._orderBook = new OrderbookSync(['BTC-USD'], this.apiUri, this.wsUri, this.auth);
+        this.handleOrderBookMessages();
+      } catch (err) {
+        debugMode && logError(err);
+        return false;
       }
-      // this.listen_to_messages();
     }
-    return Promise.resolve(true);
+    return true;
   }
 
-  async getOrderBook() {
+  handleOrderBookMessages() {
+    if (!this._orderBook) {
+      return;
+    }
+    this._orderBook.on('sync', (data) => {
+      debugMode && logInfo('Order book message "sync":');
+      debugMode && logInfo(data);
+    });
+    this._orderBook.on('synced', (data) => {
+      debugMode && logInfo('Order book message "synced":');
+      debugMode && logInfo(data);
+    });
+    this._orderBook.on('message', (data) => {
+      // this._stats = {
+      //   updated: new Date(),
+      //   last_msg: data,
+      // };
+      debugMode && logInfo('Order book message "message":');
+      debugMode && logInfo(data);
+      switch (data.type) {
+        case 'match':
+          this._last_price = data.price;
+          break;
+        default:
+          debugMode && logInfo(data);
+          break;
+      }
+    });
+    this._orderBook.on('error', (err) => {
+      // this._stats = {
+      //   updated: new Date(),
+      //   last_msg: err,
+      // };
+      debugMode && debugMode && logError('Order book message "error":');
+      debugMode && logError(err);
+    });
+  }
+
+  getOrderBook() {
     if (!this._orderBook) {
       try {
-        await this._loadOrderBook();
-      } catch (error) {
-        console.log(error);
+        this._loadOrderBook();
+      } catch (err) {
+        debugMode && logError(err);
       }
     }
-    return this._orderBook.book;
+    return this._orderBook;
   }
 }
 

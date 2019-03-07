@@ -2,8 +2,10 @@
 /* eslint-disable no-underscore-dangle */
 
 import { APIType, APIMode, TradingMode, ConnectionStatus } from './ExchangeConfig';
+import { logError } from './logger';
+import { debugMode } from './engine';
 
-export default class Exchange {
+class Exchange {
   constructor(options = {}) {
     this.isTrading = false;
     this.isExecuting = false;
@@ -27,28 +29,30 @@ export default class Exchange {
     }
   }
 
-  async _connect() {
+  _connect() {
     return Promise.resolve();
   }
 
-  async _loadOrderBook() {
-    return Promise.resolve();
+  _loadOrderBook() {
+    return false;
   }
 
   async connect() {
     this.connectionStatus = ConnectionStatus.CONNECTING;
     try {
-      await this._connect();
-      await this._loadOrderBook();
+      if (await this._connect()) {
+        Promise.resolve(true);
+      }
     } catch (err) {
-      this.connectionStatus = ConnectionStatus.CLOSED;
+      this.connectionStatus = ConnectionStatus.ERROR;
+      debugMode && logError(`test: ${err}`);
       throw err;
     }
   }
 
-  async getOrderBook() {
+  getOrderBook() {
     return this._orderBook;
   }
 }
 
-// export default { Exchange };
+export default Exchange;
