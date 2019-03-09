@@ -2,13 +2,18 @@
 // console.log('hopbot running');
 // import GdaxExchange from ;
 import GdaxExchange from './plugins/exchanges/GdaxExchange';
+import conf from '../conf';
+import { LogLevel, setLogLevel } from './core/logger';
 
 async function start() {
-  const gdax = new GdaxExchange();
-  const r = await gdax.connect();
-  console.log(r);
-  console.log(gdax.connectionStatus);
-  console.log(gdax.getOrderBook().books['BTC-USD'].state());
+  try {
+    setLogLevel(LogLevel.DEEP);
+    const gdax = new GdaxExchange(conf.gdax);
+    await gdax.connect();
+    console.log(gdax.connectionStatus);
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 start();
