@@ -1,3 +1,6 @@
+credentials*
+!credentials-sample.js
+
 .vscode/
 vscode/
 vscode
