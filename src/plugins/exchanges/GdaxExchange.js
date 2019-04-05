@@ -29,14 +29,10 @@ class GdaxExchange extends Exchange {
   }
 
   _connect() {
-    try {
-      this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
-      debugMode && logInfo(this.authClient);
-      this.connectionStatus = this._loadOrderBook() ? ConnectionStatus.CONNECTED : ConnectionStatus.ERROR;
-      return Promise.resolve(true);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
+    debugMode && logInfo(this.authClient);
+    this.connectionStatus = this._loadOrderBook() ? ConnectionStatus.CONNECTED : ConnectionStatus.ERROR;
+    return true;
   }
 
   _loadOrderBook() {
@@ -47,12 +43,22 @@ class GdaxExchange extends Exchange {
         debugMode && logInfo(`WS URI: ${this.wsUri}`);
         this._orderBook = new OrderbookSync(['BTC-USD'], this.apiUri, this.wsUri, this.auth);
         this.handleOrderBookMessages();
-      } catch (err) {
-        debugMode && logError(err);
+      } catch (error) {
+        debugMode && logError(error);
         return false;
       }
     }
     return true;
+  }
+
+  async _sell(params) {
+    try {
+      const result = await this.authClient.sell(params);
+      // Implement logic when placing sell orders (Add to list of open orders?).
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   handleOrderBookMessages() {
@@ -72,7 +78,7 @@ class GdaxExchange extends Exchange {
       //   updated: new Date(),
       //   last_msg: data,
       // };
-      debugMode && logInfo('Order book message "message":');
+      debugMode && logInfo(`Order book message "message": ${data.type}`);
       debugMode && logInfo(data);
       switch (data.type) {
         case 'match':
@@ -97,8 +103,8 @@ class GdaxExchange extends Exchange {
     if (!this._orderBook) {
       try {
         this._loadOrderBook();
-      } catch (err) {
-        debugMode && logError(err);
+      } catch (error) {
+        debugMode && logError(error);
       }
     }
     return this._orderBook;
