@@ -30,6 +30,20 @@ class Exchange {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
+  _buy(params = {}) {
+    return Promise.resolve(false);
+  }
+
+  _cancelAllOrders() {
+    return Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _cancelOrder(params = {}) {
+    return Promise.resolve(false);
+  }
+
   _connect() {
     throw new Error('Not implemented.');
   }
@@ -39,8 +53,53 @@ class Exchange {
   }
 
   // eslint-disable-next-line no-unused-vars
-  _sell(params) {
+  _sell(params = {}) {
     return Promise.reject(new Error('Not implemented.'));
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _sellAccountPositions(params) {
+    Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _sellProductPositions(params = {}) {
+    Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _sendOrder(params = {}) {
+    Promise.resolve(false);
+  }
+
+  buy(params = {}) {
+    try {
+      return this._sendOrder(params);
+    } catch (err) {
+      logErrorIf('Error buying:');
+      logErrorIf(err);
+      throw err;
+    }
+  }
+
+  cancelOrder(params = {}) {
+    try {
+      return this._cancelOrder(params);
+    } catch (err) {
+      logErrorIf('Error canceling order:');
+      logErrorIf(err);
+      throw err;
+    }
+  }
+
+  cancelAllOrders() {
+    try {
+      return this._cancelAllOrders();
+    } catch (err) {
+      logErrorIf('Error canceling all orders:');
+      logErrorIf(err);
+      throw err;
+    }
   }
 
   connect() {
@@ -49,7 +108,8 @@ class Exchange {
       return this._connect();
     } catch (error) {
       this.connectionStatus = ConnectionStatus.ERROR;
-      logErrorIf(`test: ${error}`);
+      logErrorIf('Error connecting to exchange:');
+      logErrorIf(error);
       throw error;
     }
   }
@@ -58,13 +118,33 @@ class Exchange {
     return this._orderBook;
   }
 
-  async sell(params) {
+  sell(params = {}) {
     try {
-      // logError('SELL');
-      return await this._sell(params);
-    } catch (error) {
-      logErrorIf(error);
-      throw error;
+      return this._sell(params);
+    } catch (err) {
+      logErrorIf('Error selling:');
+      logErrorIf(err);
+      throw err;
+    }
+  }
+
+  sellAccountPositions(params = {}) {
+    try {
+      return this._sellAccountPositions(params);
+    } catch (err) {
+      logErrorIf('Error selling account position:');
+      logErrorIf(err);
+      throw err;
+    }
+  }
+
+  sellProductPositions(params) {
+    try {
+      return this._sellProductPositions(params);
+    } catch (err) {
+      logErrorIf('Error selling product positions:');
+      logErrorIf(err);
+      throw err;
     }
   }
 }

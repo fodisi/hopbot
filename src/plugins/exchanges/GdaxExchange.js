@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-underscore-dangle */
 
 import { AuthenticatedClient, OrderbookSync } from 'gdax';
@@ -18,6 +19,20 @@ class GdaxExchange extends Exchange {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
+  _buy(params = {}) {
+    return Promise.resolve(false);
+  }
+
+  _cancelAllOrders() {
+    return Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _cancelOrder(params = {}) {
+    return Promise.resolve(false);
+  }
+
   _connect() {
     this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
     logInfoIf(this.authClient, LogLevel.REGULAR);
@@ -32,7 +47,7 @@ class GdaxExchange extends Exchange {
         logInfoIf(`API URI: ${this.apiUri}`, LogLevel.DEEP);
         logInfoIf(`WS URI: ${this.wsUri}`, LogLevel.DEEP);
         this._orderBook = new OrderbookSync(this.products, this.apiUri, this.wsUri, this.auth);
-        this.handleOrderBookMessages();
+        this.listenOrderBookMessages();
       } catch (err) {
         logErrorIf(err);
         return false;
@@ -41,6 +56,7 @@ class GdaxExchange extends Exchange {
     return true;
   }
 
+  // eslint-disable-next-line no-unused-vars
   async _sell(params) {
     try {
       const result = await this.authClient.sell(params);
@@ -51,18 +67,41 @@ class GdaxExchange extends Exchange {
     }
   }
 
-  handleOrderBookMessages() {
+  // eslint-disable-next-line no-unused-vars
+  _sellAccountPositions(params) {
+    Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _sellProductPositions(params = {}) {
+    Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _sendOrder(params = {}) {
+    Promise.resolve(false);
+  }
+
+  listenOrderBookMessages() {
     if (!this._orderBook) {
       return;
     }
+
+    this._orderBook.on('open', (data) => {
+      logInfoIf('Order book message "open":', LogLevel.DEEP);
+      logInfoIf(data, LogLevel.DEEP);
+    });
+
     this._orderBook.on('sync', (data) => {
       logInfoIf('Order book message "sync":', LogLevel.DEEP);
       logInfoIf(data, LogLevel.DEEP);
     });
+
     this._orderBook.on('synced', (data) => {
       logInfoIf('Order book message "synced":', LogLevel.DEEP);
       logInfoIf(data, LogLevel.DEEP);
     });
+
     this._orderBook.on('message', (data) => {
       // this._stats = {
       //   updated: new Date(),

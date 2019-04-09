@@ -28,7 +28,7 @@ function handleStdinInput(exchange) {
 
 async function start() {
   try {
-    setLogLevel(LogLevel.DEEP);
+    setLogLevel(LogLevel.REGULAR);
     const gdax = new GdaxExchange(conf.gdax);
     gdax.connect();
     console.log(gdax.connectionStatus);
