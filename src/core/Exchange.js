@@ -74,7 +74,7 @@ class Exchange {
 
   buy(params = {}) {
     try {
-      return this._sendOrder(params);
+      return this.buy(params);
     } catch (err) {
       logErrorIf('Error buying:');
       logErrorIf(err);
