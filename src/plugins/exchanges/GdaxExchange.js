@@ -59,7 +59,10 @@ class GdaxExchange extends Exchange {
   // eslint-disable-next-line no-unused-vars
   async _sell(params) {
     try {
-      const result = await this.authClient.sell(params);
+      // const result = await this.authClient.sell(params);
+      const result = Promise.resolve(true);
+      logInfoIf('SELL');
+
       // Implement logic when placing sell orders (Add to list of open orders?).
       return result;
     } catch (error) {
