@@ -19,14 +19,10 @@ class GdaxExchange extends Exchange {
   }
 
   _connect() {
-    try {
-      this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
-      logInfoIf(this.authClient, LogLevel.REGULAR);
-      this.connectionStatus = this._loadOrderBook() ? ConnectionStatus.CONNECTED : ConnectionStatus.ERROR;
-      return Promise.resolve(true);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
+    logInfoIf(this.authClient, LogLevel.REGULAR);
+    this.connectionStatus = this._loadOrderBook() ? ConnectionStatus.CONNECTED : ConnectionStatus.ERROR;
+    return true;
   }
 
   _loadOrderBook() {
@@ -43,6 +39,16 @@ class GdaxExchange extends Exchange {
       }
     }
     return true;
+  }
+
+  async _sell(params) {
+    try {
+      const result = await this.authClient.sell(params);
+      // Implement logic when placing sell orders (Add to list of open orders?).
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   handleOrderBookMessages() {
@@ -62,7 +68,6 @@ class GdaxExchange extends Exchange {
       //   updated: new Date(),
       //   last_msg: data,
       // };
-
       switch (data.type) {
         case 'match':
           this._last_price = data.price;
@@ -75,13 +80,13 @@ class GdaxExchange extends Exchange {
           break;
       }
     });
-    this._orderBook.on('error', (err) => {
+    this._orderBook.on('error', (error) => {
       // this._stats = {
       //   updated: new Date(),
       //   last_msg: err,
       // };
       logErrorIf('OrderBook Error:');
-      logErrorIf(err);
+      logErrorIf(error);
     });
   }
 
@@ -89,8 +94,8 @@ class GdaxExchange extends Exchange {
     if (!this._orderBook) {
       try {
         this._loadOrderBook();
-      } catch (err) {
-        logErrorIf(err);
+      } catch (error) {
+        logErrorIf(error);
       }
     }
     return this._orderBook;

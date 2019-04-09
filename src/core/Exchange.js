@@ -31,28 +31,41 @@ class Exchange {
   }
 
   _connect() {
-    return Promise.resolve();
+    throw new Error('Not implemented.');
   }
 
   _loadOrderBook() {
-    return false;
+    throw new Error('Not implemented.');
   }
 
-  async connect() {
+  // eslint-disable-next-line no-unused-vars
+  _sell(params) {
+    return Promise.reject(new Error('Not implemented.'));
+  }
+
+  connect() {
     this.connectionStatus = ConnectionStatus.CONNECTING;
     try {
-      if (await this._connect()) {
-        Promise.resolve(true);
-      }
-    } catch (err) {
+      return this._connect();
+    } catch (error) {
       this.connectionStatus = ConnectionStatus.ERROR;
-      logErrorIf(`test: ${err}`);
-      throw err;
+      logErrorIf(`test: ${error}`);
+      throw error;
     }
   }
 
   getOrderBook() {
     return this._orderBook;
+  }
+
+  async sell(params) {
+    try {
+      // logError('SELL');
+      return await this._sell(params);
+    } catch (error) {
+      logErrorIf(error);
+      throw error;
+    }
   }
 }
 
