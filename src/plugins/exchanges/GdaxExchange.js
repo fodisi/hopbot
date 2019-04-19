@@ -36,7 +36,10 @@ class GdaxExchange extends Exchange {
   _connect() {
     this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
     logInfoIf(this.authClient, LogLevel.REGULAR);
-    this.connectionStatus = this._loadOrderBook() ? ConnectionStatus.CONNECTED : ConnectionStatus.ERROR;
+    if (!this._loadOrderBook()) {
+      this.connectionStatus = ConnectionStatus.ERROR;
+      return false;
+    }
     return true;
   }
 
@@ -92,6 +95,7 @@ class GdaxExchange extends Exchange {
 
     this._orderBook.on('open', (data) => {
       logInfoIf('Order book message "open":', LogLevel.DEEP);
+      this.connectionStatus = ConnectionStatus.CONNECTED;
       logInfoIf(data, LogLevel.DEEP);
     });
 
