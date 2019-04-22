@@ -9,11 +9,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "scripts": {
-      "start": "node src/hopbot.js",
-      "build": "babel src --out-dir dist",
-      "serve": "node dist/hopbot.js"
-    }
+    "start": "node src/hopbot.js",
+    "start:dev": "npx babel-node ./src/hopbot.js",
+    "build": "babel src --out-dir dist",
+    "serve": "node dist/hopbot.js"
   },
   "keywords": [
     "bot",
