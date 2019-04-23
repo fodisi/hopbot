@@ -1,12 +1,22 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable class-methods-use-this */
 
+/**
+ * Base strategy class.
+ */
 class Strategy {
-  constructor(config = {}) {
+  /**
+   * Creates a Strategy.
+   *
+   * @param {string} name An unique user-friendly name for the strategy.
+   * @param {dictionary} config Strategy initial configs.
+   */
+  constructor(name, config = {}) {
+    this.id = -1; // For future use
+    this.name = name;
     this.exchange = undefined;
     this.config = config;
-    this.paused = false;
-    this.id = -1;
+    this.enabled = true;
   }
 
   // eslint-disable-next-line no-unused-vars
