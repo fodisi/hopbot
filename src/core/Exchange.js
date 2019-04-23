@@ -3,6 +3,7 @@
 
 import { APIType, APIMode, TradingMode, ConnectionStatus } from './ExchangeConfig';
 import { logErrorIf } from './logger';
+import StrategyManager from './StrategyManager';
 
 class Exchange {
   constructor(options = {}) {
@@ -20,7 +21,7 @@ class Exchange {
     this.products = options.products || [];
     this.apiMode = options.apiMode || APIMode.PRODUCTION;
     this.tradingMode = options.tradingMode || TradingMode.LIVE;
-    this.strategies = [];
+    this.strategies = new StrategyManager();
 
     if (!APIMode[this.apiMode]) {
       throw new Error('Invalid API Mode');
@@ -71,16 +72,6 @@ class Exchange {
   // eslint-disable-next-line no-unused-vars
   _sendOrder(params = {}) {
     Promise.resolve(false);
-  }
-
-  registerStrategy(strategy) {
-    // For future use.
-    // Object index within "strategies lists" will be equal to the strategy id.
-    // May need refactor if implementing some type of "unregisterStrategy" functionality.
-    const id = this.strategies.length;
-    strategy.setParentExchange(this, id);
-    this.strategies.push(strategy);
-    return id;
   }
 
   buy(params = {}) {
