@@ -29,6 +29,14 @@ class StrategyManager {
     this._enableDisableStrategy(identifier, true);
   }
 
+  executeStrategies(data) {
+    this._strategies.forEach((strategy) => {
+      if (strategy.isEnabled()) {
+        strategy.execute(data);
+      }
+    });
+  }
+
   getStrategyId(name) {
     return this._strategiesByName[name] || -1;
   }
@@ -44,10 +52,6 @@ class StrategyManager {
     this._strategiesByName[strategy.name] = id;
     strategy.setParentExchange(this, id);
     return id;
-  }
-
-  executeStrategies(data) {
-    this._strategies.forEach((strategy) => strategy.execute(data));
   }
 }
 
