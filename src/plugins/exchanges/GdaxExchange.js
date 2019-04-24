@@ -117,6 +117,7 @@ class GdaxExchange extends Exchange {
       switch (data.type) {
         case 'match':
           this._last_price = data.price;
+          this.strategies.executeStrategies(data);
           logInfoIf(`${data.side}  ${data.size}  ${data.price} ${new Date(data.time).toLocaleTimeString()}`);
           logInfoIf('Order book message "message":', LogLevel.DEEP);
           logInfoIf(data, LogLevel.DEEP);
