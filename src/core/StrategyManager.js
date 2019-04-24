@@ -8,6 +8,31 @@ class StrategyManager {
     this._strategies = [];
   }
 
+  _enableDisableStrategy(identifier, value) {
+    const id = this._strategies[identifier] ? identifier : this.getStrategyId(identifier);
+    if (id === -1) {
+      throw new Error(`Invalid identifier "${identifier}".`);
+    }
+
+    if (value) {
+      this._strategies[id].enable();
+    } else {
+      this._strategies[id].disable();
+    }
+  }
+
+  disableStrategy(identifier) {
+    this._enableDisableStrategy(identifier, false);
+  }
+
+  enableStrategy(identifier) {
+    this._enableDisableStrategy(identifier, true);
+  }
+
+  getStrategyId(name) {
+    return this._strategiesByName[name] || -1;
+  }
+
   registerStrategy(strategy) {
     // Strategy names must be unique.
     if (this._strategiesByName[strategy.name]) {
@@ -21,26 +46,8 @@ class StrategyManager {
     return id;
   }
 
-  getStrategyId(name) {
-    return this._strategiesByName[name] || -1;
-  }
-
-  disableStrategy(identifier) {
-    this._enableDisableStrategy(identifier, false);
-  }
-
-  enableStrategy(identifier) {
-    this._enableDisableStrategy(identifier, true);
-  }
-
-  _enableDisableStrategy(identifier, value) {
-    const id = this._strategies[identifier] ? identifier : this.getStrategyId(identifier);
-
-    if (id === -1) {
-      throw new Error(`Invalid identifier "${identifier}".`);
-    }
-
-    this._strategies[id].enabled = value;
+  executeStrategies(data) {
+    this._strategies.forEach((strategy) => strategy.execute(data));
   }
 }
 
