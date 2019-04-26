@@ -2,7 +2,7 @@ import credentials from './credentials';
 
 const conf = {
   gdax: {
-    exchange: 'GdaxExchange',
+    name: 'Gdax',
     products: [
       'BTC-USD',
       // 'LTC-USD',

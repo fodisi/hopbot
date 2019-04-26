@@ -17,6 +17,7 @@ class Exchange {
     this.publicClient = undefined;
     this._orderBook = undefined;
 
+    this.name = options.name || '';
     this.auth = options.auth || {};
     this.products = options.products || [];
     this.apiMode = options.apiMode || APIMode.PRODUCTION;
