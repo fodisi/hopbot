@@ -1,8 +1,17 @@
+/* eslint-disable no-console */
 /* eslint-disable no-underscore-dangle */
+
+// TODO: Refactor Logger to use better Log levels, such as:
+// error - Other runtime errors or unexpected conditions. Expect these to be immediately visible on a status console.
+// warn - Use of deprecated APIs, poor use of API, 'almost' errors, other runtime situations that are undesirable or unexpected, but not necessarily "wrong". Expect these to be immediately visible on a status console.
+// info - Interesting runtime events (startup/shutdown). Expect these to be immediately visible on a console, so be conservative and keep to a minimum.
+// debug - detailed information on the flow through the system. Expect these to be written to logs only.
+// trace - more detailed information. Expect these to be written to logs only.
 const LogLevel = {
   NONE: 0,
   REGULAR: 1,
-  DEEP: 2,
+  DETAILED: 2,
+  DEEP: 3,
 };
 
 let _logLevel = LogLevel.NONE;
@@ -15,14 +24,14 @@ function setLogLevel(level) {
   _logLevel = level;
 }
 
-function logError(error) {
+function logError(error, details = null) {
   console.error(`Error: ${new Date().toUTCString()}`);
-  console.error(error);
+  console.error(error, details);
 }
 
 function logErrorIf(error, minimumLevel = LogLevel.REGULAR) {
   if (minimumLevel === LogLevel.NONE) {
-    throw new Error('matchLevel cannot be "LogLevelType.NONE"');
+    return;
   }
 
   if (_logLevel >= minimumLevel) {
@@ -30,13 +39,13 @@ function logErrorIf(error, minimumLevel = LogLevel.REGULAR) {
   }
 }
 
-function logInfo(info) {
-  console.info(info);
+function logInfo(info, details) {
+  console.info(info, details);
 }
 
 function logInfoIf(info, minimumLevel = LogLevel.REGULAR) {
   if (minimumLevel === LogLevel.NONE) {
-    throw new Error('matchLevel cannot be "LogLevelType.NONE"');
+    return;
   }
 
   if (_logLevel >= minimumLevel) {
