@@ -11,15 +11,15 @@ class Strategy {
    * Creates a Strategy.
    *
    * @param {string} name An unique user-friendly name for the strategy.
-   * @param {dictionary} params Strategy initial configs.
+   * @param {dictionary} config Strategy initial configs.
    */
-  constructor(name, params = {}) {
+  constructor(name, config = {}) {
     this._executing = false;
-    this._params = params;
     this._executionQueue = [];
     this._id = -1;
-    this._exchange = undefined;
     this._enabled = true;
+    this.exchange = undefined;
+    this.config = config;
     this.name = name;
   }
 
@@ -29,7 +29,7 @@ class Strategy {
   }
 
   execute(data) {
-    if (!this._exchange) {
+    if (!this.exchange) {
       logErrorIf(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
       return false;
     }
@@ -40,15 +40,22 @@ class Strategy {
     }
 
     // TODO: handle asynchronous concurrency.
+    // TODO: Queue executions.
     if (this._executing) {
       logErrorIf(`Fail to execute. Strategy is already executing (id: ${this._id}).`);
       return false;
     }
 
-    this._executing = true;
-    this._execute(data);
-    this._executing = false;
-    return true;
+    try {
+      this._executing = true;
+      this._execute(data);
+      this._executing = false;
+      return true;
+    } catch (error) {
+      logErrorIf(`Error executing strategy "${this.name}@${this.exchange.name}". Execution data:`, data);
+      logErrorIf(`Error:`, error);
+      return false;
+    }
   }
 
   disable() {
@@ -65,7 +72,7 @@ class Strategy {
   }
 
   setParentExchange(exchange, id) {
-    this._exchange = exchange;
+    this.exchange = exchange;
     this._id = id;
   }
 
@@ -76,7 +83,7 @@ class Strategy {
       throw new Error(msg);
     }
 
-    this._params = params;
+    this.config = params;
   }
 }
 
