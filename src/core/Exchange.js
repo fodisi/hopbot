@@ -2,7 +2,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import { APIType, APIMode, TradingMode, ConnectionStatus } from './ExchangeConfig';
-import { logErrorIf } from './logger';
+import { logErrorIf, logInfo } from './logger';
 import StrategyManager from './StrategyManager';
 
 class Exchange {
@@ -123,7 +123,13 @@ class Exchange {
 
   sell(params = {}) {
     try {
-      return this._sell(params);
+      logInfo(`Selling @:${this.name}. Sell order:`, params);
+      const result = this._sell(params);
+      if (result) {
+        logInfo(`Sold successfully @:${this.name}. Sell order:`, params);
+      } else {
+        logInfo(`Error selling @:${this.name}. Sell order:`, params);
+      }
     } catch (err) {
       logErrorIf('Error selling:');
       logErrorIf(err);

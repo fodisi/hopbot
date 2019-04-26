@@ -3,7 +3,7 @@
 
 import { AuthenticatedClient, OrderbookSync } from 'gdax';
 import Exchange from '../../core/Exchange';
-import { APIType, APIMode, ConnectionStatus } from '../../core/ExchangeConfig';
+import { APIType, APIMode, ConnectionStatus, TradingMode } from '../../core/ExchangeConfig';
 import { LogLevel, logInfoIf, logErrorIf } from '../../core/logger';
 
 class GdaxExchange extends Exchange {
@@ -62,10 +62,13 @@ class GdaxExchange extends Exchange {
   // eslint-disable-next-line no-unused-vars
   async _sell(params) {
     try {
-      // const result = await this.authClient.sell(params);
-      const result = Promise.resolve(true);
-      logInfoIf('SELL');
-
+      let result;
+      if (this.tradingMode === TradingMode.LIVE) {
+        result = await this.authClient.sell(params);
+      } else {
+        // TODO: Handle PAPER and SIMULATION scenarios.
+        result = Promise.resolve(true);
+      }
       // Implement logic when placing sell orders (Add to list of open orders?).
       return result;
     } catch (error) {
