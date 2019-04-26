@@ -8,13 +8,13 @@ class StrategyManager {
     this._strategies = [];
   }
 
-  _enableDisableStrategy(identifier, value) {
+  _setStrategyStatus(identifier, enabled) {
     const id = this._strategies[identifier] ? identifier : this.getStrategyId(identifier);
     if (id === -1) {
       throw new Error(`Invalid identifier "${identifier}".`);
     }
 
-    if (value) {
+    if (enabled) {
       this._strategies[id].enable();
     } else {
       this._strategies[id].disable();
@@ -22,11 +22,11 @@ class StrategyManager {
   }
 
   disableStrategy(identifier) {
-    this._enableDisableStrategy(identifier, false);
+    this._setStrategyStatus(identifier, false);
   }
 
   enableStrategy(identifier) {
-    this._enableDisableStrategy(identifier, true);
+    this._setStrategyStatus(identifier, true);
   }
 
   executeStrategies(data) {

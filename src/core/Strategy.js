@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable class-methods-use-this */
 
-import { logInfoIf, LogLevel } from './logger';
+import { logErrorIf } from './logger';
 
 /**
  * Base strategy class.
@@ -30,18 +30,18 @@ class Strategy {
 
   execute(data) {
     if (!this._exchange) {
-      logInfoIf(`Fail to execute. Strategy is not registered (id: ${this._id}).`, LogLevel.DEEP);
+      logErrorIf(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
       return false;
     }
 
     if (!this._enabled) {
-      logInfoIf(`Fail to execute. Strategy is disabled (id: ${this._id}).`, LogLevel.DEEP);
+      logErrorIf(`Fail to execute. Strategy is disabled (id: ${this._id}).`);
       return false;
     }
 
     // TODO: handle asynchronous concurrency.
     if (this._executing) {
-      logInfoIf(`Fail to execute. Strategy is already executing (id: ${this._id}).`);
+      logErrorIf(`Fail to execute. Strategy is already executing (id: ${this._id}).`);
       return false;
     }
 
@@ -71,7 +71,9 @@ class Strategy {
 
   updateParams(params) {
     if (this._enabled || this._executing) {
-      throw new Error(`Cannot update params. Strategy is enabled or executing (id: ${this._id}).`);
+      const msg = `Cannot update params. Strategy is enabled or executing (id: ${this._id}).`;
+      logErrorIf(msg);
+      throw new Error(msg);
     }
 
     this._params = params;
