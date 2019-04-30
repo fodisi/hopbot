@@ -5,4 +5,9 @@ const OrderType = {
   LIMIT: 'LIMIT',
 };
 
-export default { OrderType };
+const OrderSide = {
+  BUY: 'BUY',
+  SELL: 'SELL',
+};
+
+export { OrderType, OrderSide };
