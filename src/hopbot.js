@@ -4,6 +4,7 @@
 import GdaxExchange from './plugins/exchanges/GdaxExchange';
 import conf from '../conf';
 import { LogLevel, setLogLevel } from './core/logger';
+import StopLossTakeProfit from './plugins/strategies/StopLossTakeProfit';
 
 const readline = require('readline');
 
@@ -26,6 +27,25 @@ function handleStdinInput(exchange) {
   });
 }
 
+function loadStrategies(exchange) {
+  const params = {
+    'LTC-USD': {
+      stopLossAt: 73.15,
+      lossOrderType: 'MARKET', // StrategyConfig.OrderType
+      lossSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+      lossFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
+      lossPrice: 0, // Used for LIMIT orders
+      takeProfitAt: 73.24,
+      profitOrderType: 'MARKET', // StrategyConfig.OrderType
+      profitSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+      profitFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
+      profitPrice: 0, // Used for LIMIT orders
+    },
+  };
+  const strategy = new StopLossTakeProfit('StopLossTakeProfit', params);
+  exchange.strategies.registerStrategy(strategy);
+}
+
 async function start() {
   try {
     setLogLevel(LogLevel.REGULAR);
@@ -33,6 +53,7 @@ async function start() {
     gdax.connect();
     console.log(gdax.connectionStatus);
     handleStdinInput(gdax);
+    loadStrategies(gdax);
   } catch (err) {
     console.log(err);
   }
