@@ -24,7 +24,7 @@ function setLogLevel(level) {
   _logLevel = level;
 }
 
-function logError(error, details = null) {
+function logError(error, details = '') {
   console.error(`Error: ${new Date().toUTCString()}`);
   console.error(error, details);
 }
@@ -39,7 +39,7 @@ function logErrorIf(error, minimumLevel = LogLevel.REGULAR) {
   }
 }
 
-function logInfo(info, details) {
+function logInfo(info, details = '') {
   console.info(info, details);
 }
 
