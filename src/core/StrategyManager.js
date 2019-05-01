@@ -1,11 +1,14 @@
+import { logInfoIf } from './logger';
+
 /* eslint-disable no-underscore-dangle */
 
 class StrategyManager {
-  constructor() {
+  constructor(exchange) {
     // Helper for quickly retrieving a strategy by name.
     // Object format: { name: index, ... }
     this._strategiesByName = {};
     this._strategies = [];
+    this._exchange = exchange;
   }
 
   _setStrategyStatus(identifier, enabled) {
@@ -19,6 +22,8 @@ class StrategyManager {
     } else {
       this._strategies[id].disable();
     }
+
+    logInfoIf(`Strategy id "${id}" ${enabled ? 'enabled' : 'disabled'}.`);
   }
 
   disableStrategy(identifier) {
@@ -50,7 +55,8 @@ class StrategyManager {
     const id = this._strategies.length; // Current length will be object's index, considering a zero-based index.
     this._strategies.push(strategy);
     this._strategiesByName[strategy.name] = id;
-    strategy.setParentExchange(this, id);
+    strategy.setParentExchange(this._exchange, id);
+    logInfoIf(`Strategy "${strategy.name}" registered @ ${this._exchange.name} with id "${id}".`);
     return id;
   }
 }

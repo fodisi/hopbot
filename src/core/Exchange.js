@@ -22,7 +22,7 @@ class Exchange {
     this.products = options.products || [];
     this.apiMode = options.apiMode || APIMode.PRODUCTION;
     this.tradingMode = options.tradingMode || TradingMode.LIVE;
-    this.strategies = new StrategyManager();
+    this.strategies = new StrategyManager(this);
 
     if (!APIMode[this.apiMode]) {
       throw new Error('Invalid API Mode');
@@ -123,15 +123,15 @@ class Exchange {
 
   sell(params = {}) {
     try {
-      logInfo(`Selling @:${this.name}. Sell order:`, params);
+      logInfo(`Selling @ ${this.name} (${this.tradingMode}). Sell order:`, params);
       const result = this._sell(params);
       if (result) {
-        logInfo(`Sold successfully @:${this.name}. Sell order:`, params);
+        logInfo(`Sold successfully @ ${this.name} (${this.tradingMode}). Sell order:`, params);
       } else {
-        logInfo(`Error selling @:${this.name}. Sell order:`, params);
+        logInfo(`Error selling @ ${this.name} (${this.tradingMode}). Sell order:`, params);
       }
     } catch (err) {
-      logErrorIf('Error selling:');
+      logErrorIf(`Error selling (${this.tradingMode}):`);
       logErrorIf(err);
       throw err;
     }
