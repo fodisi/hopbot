@@ -24,8 +24,8 @@ class Strategy {
   }
 
   // eslint-disable-next-line no-unused-vars
-  _execute(data) {
-    throw new Error('Not implemented.');
+  async _execute(data) {
+    return Promise.reject(new Error('Not implemented.'));
   }
 
   execute(data) {
@@ -42,7 +42,7 @@ class Strategy {
     // TODO: handle asynchronous concurrency.
     // TODO: Queue executions.
     if (this._executing) {
-      logErrorIf(`Fail to execute. Strategy is already executing (id: ${this._id}).`);
+      logErrorIf(`Fail to execute. Strategy id "${this._id}" is already executing.`);
       return false;
     }
 
@@ -63,7 +63,7 @@ class Strategy {
   }
 
   enable() {
-    this._executionQueue = []; // Cleans up execution queue.
+    this._executionQueue = []; // Cleans up execution queue. FUTURE USE.
     this._enabled = true;
   }
 

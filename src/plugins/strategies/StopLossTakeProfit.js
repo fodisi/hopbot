@@ -12,14 +12,14 @@ class StopLossTakeProfit extends Strategy {
    *        'product-id': {
    *            stopLossAt: 0.0,
    *            lossOrderType: '', // StrategyConfig.OrderType
-   *            lossSize: 0., // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+   *            lossSize: 0.0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
    *            lossFunds: 0.0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-   *            lossPrice: '', // Used for LIMIT orders
+   *            lossPrice: 0.0, // Used for LIMIT orders
    *            takeProfitAt: 0.0,
    *            profitOrderType: '', // StrategyConfig.OrderType
-   *            profitSize: 0., // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+   *            profitSize: 0.0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
    *            profitFunds: 0.0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-   *            profitPrice: '', // Used for LIMIT orders
+   *            profitPrice: 0.0, // Used for LIMIT orders
    *        }
    *    }
    * @see {StrategyConfig.OrderType}
@@ -31,7 +31,7 @@ class StopLossTakeProfit extends Strategy {
     // TODO: Validate config params.
   }
 
-  _execute(data = {}) {
+  async _execute(data = {}) {
     const config = this.config[data.productId];
 
     if (!config) {
@@ -59,7 +59,9 @@ class StopLossTakeProfit extends Strategy {
         funds: config.lossSize && config.lossSize > 0 ? 0 : config.lossFunds,
         price: config.lossOrderType === OrderType.MARKET ? 0 : config.lossPrice,
       };
-      this._exchange.sell(params);
+      logInfoIf(`StopLoss triggered @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+      await this.exchange.sell(params);
+      // TODO: handle disabling strategy.
       return;
     }
 
@@ -71,7 +73,9 @@ class StopLossTakeProfit extends Strategy {
         funds: config.profitSize && config.profitSize > 0 ? 0 : config.profitFunds,
         price: config.profitOrderType === OrderType.MARKET ? 0 : config.profitPrice,
       };
-      this._exchange.sell(params);
+      logInfoIf(`TakeProfit triggered @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+      await this.exchange.sell(params);
+      // TODO: handle disabling strategy.
     }
   }
 }
