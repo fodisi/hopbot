@@ -154,7 +154,7 @@ class GdaxExchange extends Exchange {
             price: data.price,
             side: data.side,
           });
-          logInfoIf(`${data.side}  ${data.size}  ${data.price} ${new Date(data.time).toLocaleTimeString()}`);
+          logInfoIf(`Match: ${data.side}  ${data.size}  ${data.price} ${new Date(data.time).toLocaleTimeString()}.`);
           logInfoIf('Order book message "message":', LogLevel.DEEP);
           logInfoIf(data, LogLevel.DEEP);
           break;
