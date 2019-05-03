@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable class-methods-use-this */
 
 import { logErrorIf } from './logger';
+import { SignalType } from './StrategyConfig';
 
 /**
  * Base strategy class.
@@ -12,15 +14,18 @@ class Strategy {
    *
    * @param {string} name An unique user-friendly name for the strategy.
    * @param {dictionary} config Strategy initial configs.
+   * @param {bool} signalOnly true, the strategy will generate signals only. false, will execute the strategy.
    */
-  constructor(name, config = {}) {
+  constructor(name, config = {}, signalOnly = false) {
     this._executing = false;
     this._executionQueue = [];
     this._id = -1;
-    this._enabled = true;
+    this._enabled = false;
+    this._signalOnly = signalOnly;
     this.exchange = undefined;
     this.config = config;
     this.name = name;
+    this.signal = SignalType.NONE;
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -31,11 +36,13 @@ class Strategy {
   execute(data) {
     if (!this.exchange) {
       logErrorIf(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
+      this.signal = SignalType.NONE;
       return false;
     }
 
     if (!this._enabled) {
       logErrorIf(`Fail to execute. Strategy is disabled (id: ${this._id}).`);
+      this.signal = SignalType.NONE;
       return false;
     }
 
@@ -43,6 +50,7 @@ class Strategy {
     // TODO: Queue executions.
     if (this._executing) {
       logErrorIf(`Fail to execute. Strategy id "${this._id}" is already executing.`);
+      this.signal = SignalType.NONE;
       return false;
     }
 
@@ -74,6 +82,11 @@ class Strategy {
   setParentExchange(exchange, id) {
     this.exchange = exchange;
     this._id = id;
+  }
+
+  // Useful when using Strategy aggregators.
+  updateMarketData(data = {}) {
+    throw new Error('Not implemented.');
   }
 
   updateParams(params) {
