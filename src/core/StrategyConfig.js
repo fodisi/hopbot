@@ -10,4 +10,15 @@ const OrderSide = {
   SELL: 'SELL',
 };
 
-export { OrderType, OrderSide };
+const SignalType = {
+  NONE: 'NONE',
+  BUY: 'BUY',
+  SELL: 'SELL',
+};
+
+const SignalConfirmationType = {
+  ALL: 'ALL',
+  MINIMUM: 'MINIMUM',
+};
+
+export { OrderType, OrderSide, SignalType, SignalConfirmationType };
