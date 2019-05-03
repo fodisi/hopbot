@@ -34,10 +34,10 @@ class StrategyManager {
     this._setStrategyStatus(identifier, true);
   }
 
-  executeStrategies(data) {
+  updateMarketData(data) {
     this._strategies.forEach((strategy) => {
       if (strategy.isEnabled()) {
-        strategy.execute(data);
+        strategy.updateMarketData(data);
       }
     });
   }
