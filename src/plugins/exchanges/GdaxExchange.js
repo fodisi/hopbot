@@ -99,6 +99,7 @@ class GdaxExchange extends Exchange {
       // Implement logic when placing sell orders (Add to list of open orders?).
       return result;
     } catch (error) {
+      logErrorIf(error);
       throw error;
     }
   }
@@ -147,14 +148,17 @@ class GdaxExchange extends Exchange {
       switch (data.type) {
         case 'match':
           this._last_price = data.price;
-          this.strategies.executeStrategies({
+          this.strategies.updateMarketData({
             productId: data.product_id,
             eventType: data.type,
             size: data.size,
             price: data.price,
             side: data.side,
           });
-          logInfoIf(`Match: ${data.side}  ${data.size}  ${data.price} ${new Date(data.time).toLocaleTimeString()}.`);
+          logInfoIf(
+            `Match: ${data.side}  ${data.size}  ${data.price} ${new Date(data.time).toLocaleTimeString()}.`,
+            LogLevel.DETAILED
+          );
           logInfoIf('Order book message "message":', LogLevel.DEEP);
           logInfoIf(data, LogLevel.DEEP);
           break;
