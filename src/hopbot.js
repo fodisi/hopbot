@@ -30,12 +30,12 @@ function handleStdinInput(exchange) {
 function loadStrategies(exchange) {
   const params = {
     'LTC-USD': {
-      stopLossAt: 73.15,
+      stopLossAt: 76.69,
       lossOrderType: 'MARKET', // StrategyConfig.OrderType
       lossSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       lossFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
       lossPrice: 0, // Used for LIMIT orders
-      takeProfitAt: 73.24,
+      takeProfitAt: 77.35,
       profitOrderType: 'MARKET', // StrategyConfig.OrderType
       profitSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       profitFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
@@ -44,11 +44,12 @@ function loadStrategies(exchange) {
   };
   const strategy = new StopLossTakeProfit('StopLossTakeProfit', params);
   exchange.strategies.registerStrategy(strategy);
+  strategy.enable();
 }
 
 async function start() {
   try {
-    setLogLevel(LogLevel.REGULAR);
+    setLogLevel(LogLevel.DETAILED);
     const gdax = new GdaxExchange(conf.gdax);
     gdax.connect();
     console.log(gdax.connectionStatus);
