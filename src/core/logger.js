@@ -17,7 +17,7 @@ const LogLevel = {
 let _logLevel = LogLevel.NONE;
 
 function setLogLevel(level) {
-  if (level !== LogLevel.NONE && level !== LogLevel.REGULAR && level !== LogLevel.DEEP) {
+  if (level < LogLevel.NONE || level > LogLevel.DEEP) {
     throw new Error(`"${level}" is not a valid "LogLevel`);
   }
 
