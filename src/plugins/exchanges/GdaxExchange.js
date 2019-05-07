@@ -82,6 +82,8 @@ class GdaxExchange extends Exchange {
       orderParams.price = params.price.toString();
     }
 
+    logInfoIf('Order params parsed:', LogLevel.DETAILED);
+    logInfoIf(orderParams, LogLevel.DETAILED);
     return orderParams;
   }
 
@@ -125,8 +127,8 @@ class GdaxExchange extends Exchange {
     }
 
     this._orderBook.on('open', (data) => {
-      logInfoIf('Order book message "open":', LogLevel.DEEP);
       this.connectionStatus = ConnectionStatus.CONNECTED;
+      logInfoIf('Order book message "open":', LogLevel.DEEP);
       logInfoIf(data, LogLevel.DEEP);
     });
 
