@@ -76,13 +76,15 @@ class StopLossTakeProfit extends Strategy {
       this.signal = SignalType.NONE;
     }
 
+    logInfoIf(`IsPriceWithinRange: ${this._isPriceWithinRange}`, LogLevel.DETAILED);
+    logInfoIf(`Signal ${this.signal}`, LogLevel.DETAILED);
     if (!this._signalOnly && this.signal === SignalType.SELL) {
       try {
         await this.exchange.sell(params);
         logInfoIf(`Sell order placed @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
         // TODO: handle disabling strategy.
       } catch (error) {
-        logErrorIf(error, LogLevel.DETAILED);
+        logErrorIf(error, LogLevel.REGULAR);
       }
     }
   }
