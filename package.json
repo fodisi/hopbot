@@ -26,7 +26,8 @@
   "license": "",
   "dependencies": {
     "gdax": "^0.8.0",
-    "npm": "^6.8.0"
+    "npm": "^6.8.0",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
