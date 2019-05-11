@@ -8,6 +8,7 @@ vscode
 .env
 *.tar.gz
 *.log.*
+*.log
 node_modules
 npm-debug.log
 db.json
