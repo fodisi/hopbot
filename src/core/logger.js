@@ -1,56 +1,117 @@
-/* eslint-disable no-console */
-/* eslint-disable no-underscore-dangle */
+// https://github.com/winstonjs/winston
+import winston from 'winston';
 
-// TODO: Refactor Logger to use better Log levels, such as:
-// error - Other runtime errors or unexpected conditions. Expect these to be immediately visible on a status console.
-// warn - Use of deprecated APIs, poor use of API, 'almost' errors, other runtime situations that are undesirable or unexpected, but not necessarily "wrong". Expect these to be immediately visible on a status console.
-// info - Interesting runtime events (startup/shutdown). Expect these to be immediately visible on a console, so be conservative and keep to a minimum.
-// debug - detailed information on the flow through the system. Expect these to be written to logs only.
-// trace - more detailed information. Expect these to be written to logs only.
+// TODO: create print function to log to console UI data (ticks, profits, etc.).
+
+/**
+ * @name LogLevel
+ * @description Determines the log level for the application. Levels are prioritized from -1 to 5 (highest to lowest).
+ * @summary It is based on npm and Winston's npm levels, plus a silent level. Winstons levels are:
+ * {
+ *    error: 0,
+ *    warn: 1,
+ *    info: 2,
+ *    verbose: 3,
+ *    debug: 4,
+ *    silly: 5
+ * }
+ * @see https://github.com/winstonjs/winston#logging-levels
+ */
 const LogLevel = {
-  NONE: 0,
-  REGULAR: 1,
-  DETAILED: 2,
-  DEEP: 3,
+  SILENT: -1,
+  ERROR: 0,
+  WARN: 1,
+  INFO: 2,
+  VERBOSE: 3,
+  DEBUG: 4,
+  TRACE: 5, // winston level = silly
 };
 
-let _logLevel = LogLevel.NONE;
+let logger;
 
-function setLogLevel(level) {
-  if (level < LogLevel.NONE || level > LogLevel.DEEP) {
-    throw new Error(`"${level}" is not a valid "LogLevel`);
+function setLogger(level = LogLevel.ERROR, exitOnError = true, logToFile = false) {
+  if (level < LogLevel.NONE || level > LogLevel.TRACE) {
+    throw new Error(`Invalid log level "${level}".`);
   }
 
-  _logLevel = level;
-}
-
-function logError(error, details = '') {
-  console.error(`Error: ${new Date().toUTCString()}`);
-  console.error(error, details);
-}
-
-function logErrorIf(error, minimumLevel = LogLevel.REGULAR) {
-  if (minimumLevel === LogLevel.NONE) {
+  if (level === LogLevel.SILENT) {
+    if (logger) {
+      logger.silent = true;
+    }
     return;
   }
 
-  if (_logLevel >= minimumLevel) {
-    logError(error);
+  // Helper for converting LogLevel to winston level.
+  const winstonLevels = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
+  const logFormatter = winston.format.printf((info) => {
+    const { timestamp, ...meta } = info.metadata;
+    // \n will just break line on a console, not on file (which is the desired behavior).
+    return `${timestamp} ${info.level}: ${info.message} \n${JSON.stringify(meta)}`;
+  });
+
+  logger = winston.createLogger({
+    levels: winston.config.npm.levels,
+    level: winstonLevels[level],
+    handleExceptions: true,
+    transports: [
+      new winston.transports.Console({
+        format: winston.format.combine(
+          winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+          winston.format.padLevels(),
+          winston.format.metadata(),
+          winston.format.errors({ stack: true }),
+          logFormatter,
+          winston.format.colorize({ all: true })
+        ),
+      }),
+    ],
+  });
+
+  if (logToFile) {
+    logger.add(
+      new winston.transports.File({
+        filename: `./logs/log_${new Date().getTime()}.log`,
+        format: winston.format.combine(
+          winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+          winston.format.padLevels(),
+          winston.format.metadata(),
+          winston.format.errors({ stack: true }),
+          logFormatter
+        ),
+      })
+    );
   }
+
+  if (logger.silent) {
+    logger.silent = false;
+  }
+
+  logger.exitOnError = exitOnError;
 }
 
-function logInfo(info, details = '') {
-  console.info(info, details);
+function logError(message, error = null) {
+  const details = error ? ` \r\nException: ` : '';
+  logger.error(`${message}${details}`, error);
 }
 
-function logInfoIf(info, minimumLevel = LogLevel.REGULAR) {
-  if (minimumLevel === LogLevel.NONE) {
-    return;
-  }
-
-  if (_logLevel >= minimumLevel) {
-    logInfo(info);
-  }
+function logWarn(message, details = null) {
+  logger.warn(message, details);
 }
 
-export { LogLevel, setLogLevel, logError, logErrorIf, logInfo, logInfoIf };
+function logInfo(message, details = null) {
+  logger.info(message, details);
+}
+
+function logVerbose(message, details = null) {
+  logger.verbose(message, details);
+}
+
+function logDebug(message, details = null) {
+  logger.debug(message, details);
+}
+
+function logTrace(message, details = null) {
+  logger.silly(message, details);
+}
+
+export { LogLevel, setLogger, logError, logWarn, logInfo, logVerbose, logDebug, logTrace };
