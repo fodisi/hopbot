@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import Strategy from './Strategy';
-import { logInfoIf, logErrorIf } from './logger';
+import { logError, logDebug } from './logger';
 import { SignalConfirmationType, SignalType } from './StrategyConfig';
 
 class MultiStrategy extends Strategy {
@@ -18,13 +18,17 @@ class MultiStrategy extends Strategy {
 
   setBuySignalConfirmations(type = SignalConfirmationType.ALL, confirmations = 0) {
     if (this._enabled || this._executing) {
-      const msg = `Cannot update BuySignalConfirmations. Strategy is enabled or executing (id: ${this._id}).`;
-      logErrorIf(msg);
-      throw new Error(msg);
+      const error = new Error(
+        `Cannot update BuySignalConfirmations. Strategy is enabled or executing (id: ${this._id}).`
+      );
+      logError('', error);
+      throw error;
     }
 
     if (type !== SignalConfirmationType.ALL && type !== SignalConfirmationType.MINIMUM) {
-      throw new Error(`Invalid buy SignalConfirmationType "${type}" for strategy id "${this._id}".`);
+      const error = new Error(`Invalid buy SignalConfirmationType "${type}" for strategy id "${this._id}".`);
+      logError('', error);
+      throw error;
     }
 
     if (type === SignalConfirmationType.ALL && this._subStrategies.length > 0) {
@@ -37,13 +41,15 @@ class MultiStrategy extends Strategy {
 
   setSellSignalConfirmations(type = SignalConfirmationType.ALL, confirmations = 0) {
     if (this._enabled || this._executing) {
-      const msg = `Cannot update BuySignalConfirmations. Strategy is enabled or executing (id: ${this._id}).`;
-      logErrorIf(msg);
-      throw new Error(msg);
+      const error = new Error(`Invalid sell SignalConfirmationType "${type}" for strategy id "${this._id}".`);
+      logError('', error);
+      throw error;
     }
 
     if (type !== SignalConfirmationType.ALL && type !== SignalConfirmationType.MINIMUM) {
-      throw new Error(`Invalid sell SignalConfirmationType "${type}" for strategy id "${this._id}".`);
+      const error = new Error(`Invalid buy SignalConfirmationType "${type}" for strategy id "${this._id}".`);
+      logError('', error);
+      throw error;
     }
 
     if (type === SignalConfirmationType.ALL && this._subStrategies.length > 0) {
@@ -89,7 +95,9 @@ class MultiStrategy extends Strategy {
   addSubStrategy(name, config = {}) {
     // Strategy names must be unique.
     if (this._subStrategiesByName[name]) {
-      throw new Error(`SubStrategy with name "${name}" already added.`);
+      const error = new Error(`SubStrategy with name "${name}" already added.`);
+      logError('', error);
+      throw error;
     }
 
     const strategy = new Strategy(name, config, true);
@@ -97,7 +105,7 @@ class MultiStrategy extends Strategy {
     this._subStrategies.push(strategy);
     this._subStrategiesByName[strategy.name] = id;
     strategy.setParentExchange(this.exchange, id);
-    logInfoIf(`Strategy "${strategy.name}" registered @ ${this.exchange.name} with id "${id}".`);
+    logDebug(`Strategy "${strategy.name}" registered @ ${this.exchange.name} with id "${id}".`);
 
     if (this._buySignalConfirmationType === SignalConfirmationType.ALL) {
       this._buySignalConfirmations = this._subStrategies.length;
