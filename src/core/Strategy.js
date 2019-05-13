@@ -2,7 +2,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable class-methods-use-this */
 
-import { logErrorIf } from './logger';
+import { logError } from './logger';
 import { SignalType } from './StrategyConfig';
 
 /**
@@ -35,13 +35,13 @@ class Strategy {
 
   execute(data) {
     if (!this.exchange) {
-      logErrorIf(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
+      logError(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
       this.signal = SignalType.NONE;
       return false;
     }
 
     if (!this._enabled) {
-      logErrorIf(`Fail to execute. Strategy is disabled (id: ${this._id}).`);
+      logError(`Fail to execute. Strategy is disabled (id: ${this._id}).`);
       this.signal = SignalType.NONE;
       return false;
     }
@@ -49,7 +49,7 @@ class Strategy {
     // TODO: handle asynchronous concurrency.
     // TODO: Queue executions.
     if (this._executing) {
-      logErrorIf(`Fail to execute. Strategy id "${this._id}" is already executing.`);
+      logError(`Fail to execute. Strategy id "${this._id}" is already executing.`);
       this.signal = SignalType.NONE;
       return false;
     }
@@ -60,8 +60,10 @@ class Strategy {
       this._executing = false;
       return true;
     } catch (error) {
-      logErrorIf(`Error executing strategy "${this.name}@${this.exchange.name}". Execution data:`, data);
-      logErrorIf(`Error:`, error);
+      logError(
+        `Error executing strategy "${this.name}@${this.exchange.name}". Execution data: ${JSON.stringify(data)}`,
+        error
+      );
       return false;
     }
   }
@@ -91,9 +93,9 @@ class Strategy {
 
   updateParams(params) {
     if (this._enabled || this._executing) {
-      const msg = `Cannot update params. Strategy is enabled or executing (id: ${this._id}).`;
-      logErrorIf(msg);
-      throw new Error(msg);
+      const error = new Error(`Cannot update params. Strategy is enabled or executing (id: ${this._id}).`);
+      logError('', error);
+      throw error;
     }
 
     this.config = params;
