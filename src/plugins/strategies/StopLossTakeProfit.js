@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import Strategy from '../../core/Strategy';
-import { logErrorIf, logInfoIf, LogLevel } from '../../core/logger';
+import { logError, logDebug, logTrace } from '../../core/logger';
 import { OrderType, SignalType } from '../../core/StrategyConfig';
 
 class StopLossTakeProfit extends Strategy {
@@ -37,18 +37,20 @@ class StopLossTakeProfit extends Strategy {
     let params;
 
     if (!config) {
-      logErrorIf(`Strategy ${this._id} - Unable to find configs for product id "${data.productId}".`);
+      logError(`Strategy ${this._id} - Unable to find configs for product id "${data.productId}".`);
       return;
     }
 
     if (!data.price || data.price <= 0) {
-      logErrorIf(`Strategy ${this._id} - Param "price" must be greater than zero. Received: "${data.price}"`);
+      logError(
+        `Strategy ${this._id} - Param "price" is required and must be greater than zero. Received: "${data.price}"`
+      );
       return;
     }
 
     if (!this._isPriceWithinRange && data.price >= config.stopLossAt && data.price <= config.takeProfitAt) {
       this._isPriceWithinRange = true;
-      logInfoIf(`Strategy ${this._id} - Triggered "isWithinPriceRange @ ${data.price}.`);
+      logDebug(`Strategy ${this._id} - Triggered "isWithinPriceRange @ ${data.price}.`);
       return;
     }
 
@@ -61,7 +63,7 @@ class StopLossTakeProfit extends Strategy {
         price: config.lossOrderType === OrderType.MARKET ? 0 : config.lossPrice,
       };
       this.signal = SignalType.SELL;
-      logInfoIf(`StopLoss signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+      logDebug(`StopLoss signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
     } else if (this._isPriceWithinRange && data.price >= config.takeProfitAt) {
       params = {
         productId: data.productId,
@@ -71,20 +73,20 @@ class StopLossTakeProfit extends Strategy {
         price: config.profitOrderType === OrderType.MARKET ? 0 : config.profitPrice,
       };
       this.signal = SignalType.SELL;
-      logInfoIf(`TakeProfit signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+      logDebug(`TakeProfit signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
     } else {
       this.signal = SignalType.NONE;
     }
 
-    logInfoIf(`IsPriceWithinRange: ${this._isPriceWithinRange}`, LogLevel.DETAILED);
-    logInfoIf(`Signal ${this.signal}`, LogLevel.DETAILED);
+    logTrace(`IsPriceWithinRange: ${this._isPriceWithinRange}`);
+    logTrace(`Signal ${this.signal}`);
     if (!this._signalOnly && this.signal === SignalType.SELL) {
       try {
         await this.exchange.sell(params);
-        logInfoIf(`Sell order placed @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+        logDebug(`Sell order placed @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
         // TODO: handle disabling strategy.
       } catch (error) {
-        logErrorIf(error, LogLevel.REGULAR);
+        logError('', error);
       }
     }
   }
