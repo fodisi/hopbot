@@ -4,7 +4,7 @@
 import { AuthenticatedClient, OrderbookSync } from 'gdax';
 import Exchange from '../../core/Exchange';
 import { APIType, APIMode, ConnectionStatus, TradingMode } from '../../core/ExchangeConfig';
-import { LogLevel, logInfoIf, logErrorIf } from '../../core/logger';
+import { logTrace, logError, logDebug } from '../../core/logger';
 import { OrderType } from '../../core/StrategyConfig';
 
 class GdaxExchange extends Exchange {
@@ -36,7 +36,6 @@ class GdaxExchange extends Exchange {
 
   _connect() {
     this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
-    logInfoIf(this.authClient, LogLevel.REGULAR);
     if (!this._loadOrderBook()) {
       this.connectionStatus = ConnectionStatus.ERROR;
       return false;
@@ -47,13 +46,11 @@ class GdaxExchange extends Exchange {
   _loadOrderBook() {
     if (!this._orderBook) {
       try {
-        logInfoIf('Loading order book.', LogLevel.DEEP);
-        logInfoIf(`API URI: ${this.apiUri}`, LogLevel.DEEP);
-        logInfoIf(`WS URI: ${this.wsUri}`, LogLevel.DEEP);
+        logTrace(`Loading order book. API URI: ${this.apiUri}. WS URI: ${this.wsUri}`);
         this._orderBook = new OrderbookSync(this.products, this.apiUri, this.wsUri, this.auth);
         this.listenOrderBookMessages();
-      } catch (err) {
-        logErrorIf(err);
+      } catch (error) {
+        logError('Error loading orderbook.', error);
         return false;
       }
     }
@@ -82,8 +79,7 @@ class GdaxExchange extends Exchange {
       orderParams.price = params.price.toString();
     }
 
-    logInfoIf('Order params parsed:', LogLevel.DETAILED);
-    logInfoIf(orderParams, LogLevel.DETAILED);
+    logDebug('Order params parsed:', orderParams);
     return orderParams;
   }
 
@@ -101,7 +97,7 @@ class GdaxExchange extends Exchange {
       // Implement logic when placing sell orders (Add to list of open orders?).
       return result;
     } catch (error) {
-      logErrorIf(error);
+      logError('', error);
       throw error;
     }
   }
@@ -128,18 +124,15 @@ class GdaxExchange extends Exchange {
 
     this._orderBook.on('open', (data) => {
       this.connectionStatus = ConnectionStatus.CONNECTED;
-      logInfoIf('Order book message "open":', LogLevel.DEEP);
-      logInfoIf(data, LogLevel.DEEP);
+      logTrace('Order book message "open":', data);
     });
 
     this._orderBook.on('sync', (data) => {
-      logInfoIf('Order book message "sync":', LogLevel.DEEP);
-      logInfoIf(data, LogLevel.DEEP);
+      logTrace('Order book message "sync":', data);
     });
 
     this._orderBook.on('synced', (data) => {
-      logInfoIf('Order book message "synced":', LogLevel.DEEP);
-      logInfoIf(data, LogLevel.DEEP);
+      logTrace('Order book message "synced":', data);
     });
 
     this._orderBook.on('message', (data) => {
@@ -157,25 +150,16 @@ class GdaxExchange extends Exchange {
             price: data.price,
             side: data.side,
           });
-          logInfoIf(
-            `Match: ${data.side}  ${data.size}  ${data.price} ${new Date(data.time).toLocaleTimeString()}.`,
-            LogLevel.DETAILED
-          );
-          logInfoIf('Order book message "message":', LogLevel.DEEP);
-          logInfoIf(data, LogLevel.DEEP);
+          logTrace('Order book message "message":', data);
+          logDebug(`Match:\t${data.side}\t${data.size}\t${data.price}\t${new Date(data.time).toLocaleTimeString()}.`);
           break;
         default:
-          logInfoIf(data.type, LogLevel.DEEP);
+          logTrace(data.type);
           break;
       }
     });
     this._orderBook.on('error', (error) => {
-      // this._stats = {
-      //   updated: new Date(),
-      //   last_msg: err,
-      // };
-      logErrorIf('OrderBook Error:');
-      logErrorIf(error);
+      logError('OrderBook Error:', error);
     });
   }
 
@@ -184,7 +168,8 @@ class GdaxExchange extends Exchange {
       try {
         this._loadOrderBook();
       } catch (error) {
-        logErrorIf(error);
+        logError('', error);
+        // TODO: Should throw error? If not, add documentation.
       }
     }
     return this._orderBook;
