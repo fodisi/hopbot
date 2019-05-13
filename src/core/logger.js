@@ -94,23 +94,23 @@ function logError(message, error = null) {
   logger.error(`${message}${details}`, error);
 }
 
-function logWarn(message, details = null) {
+function logWarn(message, details = '') {
   logger.warn(message, details);
 }
 
-function logInfo(message, details = null) {
+function logInfo(message, details = '') {
   logger.info(message, details);
 }
 
-function logVerbose(message, details = null) {
+function logVerbose(message, details = '') {
   logger.verbose(message, details);
 }
 
-function logDebug(message, details = null) {
+function logDebug(message, details = '') {
   logger.debug(message, details);
 }
 
-function logTrace(message, details = null) {
+function logTrace(message, details = '') {
   logger.silly(message, details);
 }
 
