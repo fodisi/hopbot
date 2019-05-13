@@ -2,7 +2,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import { APIType, APIMode, TradingMode, ConnectionStatus } from './ExchangeConfig';
-import { logErrorIf, logInfo } from './logger';
+import { logInfo, logError } from './logger';
 import StrategyManager from './StrategyManager';
 
 class Exchange {
@@ -25,11 +25,15 @@ class Exchange {
     this.strategies = new StrategyManager(this);
 
     if (!APIMode[this.apiMode]) {
-      throw new Error('Invalid API Mode');
+      const error = new Error('Invalid API Mode');
+      logError('Exchange constructor error.', error);
+      throw error;
     }
 
     if (!TradingMode[this.tradingMode]) {
-      throw new Error('Invalid Trading Mode');
+      const error = new Error('Invalid Trading Mode');
+      logError('Exchange constructor error.', error);
+      throw error;
     }
   }
 
@@ -78,30 +82,27 @@ class Exchange {
   buy(params = {}) {
     try {
       return this.buy(params);
-    } catch (err) {
-      logErrorIf('Error buying:');
-      logErrorIf(err);
-      throw err;
+    } catch (error) {
+      logError(`Error buying. Params: ${JSON.stringify(params)}.`, error);
+      throw error;
     }
   }
 
   cancelOrder(params = {}) {
     try {
       return this._cancelOrder(params);
-    } catch (err) {
-      logErrorIf('Error canceling order:');
-      logErrorIf(err);
-      throw err;
+    } catch (error) {
+      logError(`Error canceling order. Params: ${JSON.stringify(params)}.`, error);
+      throw error;
     }
   }
 
   cancelAllOrders() {
     try {
       return this._cancelAllOrders();
-    } catch (err) {
-      logErrorIf('Error canceling all orders:');
-      logErrorIf(err);
-      throw err;
+    } catch (error) {
+      logError('Error canceling all orders:', error);
+      throw error;
     }
   }
 
@@ -111,8 +112,7 @@ class Exchange {
       return this._connect();
     } catch (error) {
       this.connectionStatus = ConnectionStatus.ERROR;
-      logErrorIf('Error connecting to exchange:');
-      logErrorIf(error);
+      logError('Error connecting to exchange:', error);
       throw error;
     }
   }
@@ -130,30 +130,27 @@ class Exchange {
       } else {
         logInfo(`Error selling @ ${this.name} (${this.tradingMode}). Sell order:`, params);
       }
-    } catch (err) {
-      logErrorIf(`Error selling (${this.tradingMode}):`);
-      logErrorIf(err);
-      throw err;
+    } catch (error) {
+      logError(`Error selling (${this.tradingMode}). Params: ${JSON.stringify(params)}.`, error);
+      throw error;
     }
   }
 
   sellAccountPositions(params = {}) {
     try {
       return this._sellAccountPositions(params);
-    } catch (err) {
-      logErrorIf('Error selling account position:');
-      logErrorIf(err);
-      throw err;
+    } catch (error) {
+      logError(`Error selling account position. Params: ${JSON.stringify(params)}.`, error);
+      throw error;
     }
   }
 
   sellProductPositions(params) {
     try {
       return this._sellProductPositions(params);
-    } catch (err) {
-      logErrorIf('Error selling product positions:');
-      logErrorIf(err);
-      throw err;
+    } catch (error) {
+      logError(`Error selling product positions. Params: ${JSON.stringify(params)}.`, error);
+      throw error;
     }
   }
 }
