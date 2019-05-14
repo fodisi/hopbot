@@ -1,28 +1,43 @@
 /* eslint-disable no-console */
-// console.log('hopbot running');
-// import GdaxExchange from ;
+import readline from 'readline';
 import GdaxExchange from './plugins/exchanges/GdaxExchange';
 import conf from '../conf';
-import { LogLevel, setLogLevel } from './core/logger';
+import { LogLevel, setLogger } from './core/logger';
+// import { logError, logWarn, logInfo, logVerbose, logDebug, logTrace } from './core/logger';
 import StopLossTakeProfit from './plugins/strategies/StopLossTakeProfit';
 
-const readline = require('readline');
+// const readline = require('readline');
 
 function handleStdinInput(exchange) {
-  readline.emitKeypressEvents(process.stdin);
-  process.stdin.setRawMode(true);
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false,
+  });
+  process.stdin.setRawMode(false);
 
-  process.stdin.on('keypress', (key, data) => {
-    if (data.ctrl && data.name === 'c') {
-      process.exit();
-    } else {
-      switch (key.toUpperCase()) {
-        case 'S':
-          exchange.sell({});
-          break;
-        default:
-          break;
+  rl.on('line', (line) => {
+    switch (line[0].toUpperCase()) {
+      case 'S':
+        console.log(line);
+        exchange.sell({});
+        break;
+      case 'L':
+        exchange.updateAccountBalances();
+        break;
+      case 'P': {
+        const id = line.substring(2, line.length);
+        console.log(id);
+        try {
+          exchange.updateProductBalance({ id });
+        } catch (error) {
+          console.log(error);
+        }
+
+        break;
       }
+      default:
+        break;
     }
   });
 }
@@ -30,12 +45,12 @@ function handleStdinInput(exchange) {
 function loadStrategies(exchange) {
   const params = {
     'LTC-USD': {
-      stopLossAt: 76.69,
+      stopLossAt: 88.19,
       lossOrderType: 'MARKET', // StrategyConfig.OrderType
       lossSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       lossFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
       lossPrice: 0, // Used for LIMIT orders
-      takeProfitAt: 77.35,
+      takeProfitAt: 88.47,
       profitOrderType: 'MARKET', // StrategyConfig.OrderType
       profitSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       profitFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
@@ -49,7 +64,7 @@ function loadStrategies(exchange) {
 
 async function start() {
   try {
-    setLogLevel(LogLevel.DETAILED);
+    setLogger(LogLevel.DEBUG);
     const gdax = new GdaxExchange(conf.gdax);
     gdax.connect();
     console.log(gdax.connectionStatus);
