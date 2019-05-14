@@ -2,7 +2,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable class-methods-use-this */
 
-import { logError } from './logger';
+import { logError, logDebug } from './logger';
 import { SignalType } from './StrategyConfig';
 
 /**
@@ -70,11 +70,13 @@ class Strategy {
 
   disable() {
     this.enable = false;
+    logDebug(`Strategy id "${this._id}" disabled.`);
   }
 
   enable() {
     this._executionQueue = []; // Cleans up execution queue. FUTURE USE.
     this._enabled = true;
+    logDebug(`Strategy id "${this._id}" enabled.`);
   }
 
   isEnabled() {
