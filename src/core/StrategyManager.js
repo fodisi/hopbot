@@ -1,4 +1,4 @@
-import { logInfoIf } from './logger';
+import { logDebug } from './logger';
 
 /* eslint-disable no-underscore-dangle */
 
@@ -22,8 +22,6 @@ class StrategyManager {
     } else {
       this._strategies[id].disable();
     }
-
-    logInfoIf(`Strategy id "${id}" ${enabled ? 'enabled' : 'disabled'}.`);
   }
 
   disableStrategy(identifier) {
@@ -56,7 +54,7 @@ class StrategyManager {
     this._strategies.push(strategy);
     this._strategiesByName[strategy.name] = id;
     strategy.setParentExchange(this._exchange, id);
-    logInfoIf(`Strategy "${strategy.name}" registered @ ${this._exchange.name} with id "${id}".`);
+    logDebug(`Strategy "${strategy.name}" registered @ ${this._exchange.name} with id "${id}".`);
     return id;
   }
 }
