@@ -16,6 +16,7 @@ class Exchange {
     this.authClient = undefined;
     this.publicClient = undefined;
     this._orderBook = undefined;
+    this._balances = {};
 
     this.name = options.name || '';
     this.auth = options.auth || {};
@@ -79,27 +80,37 @@ class Exchange {
     Promise.resolve(false);
   }
 
-  buy(params = {}) {
+  // eslint-disable-next-line no-unused-vars
+  _updateAccountBalances(params = {}) {
+    return Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  _updateProductBalance(params = {}) {
+    return Promise.resolve(false);
+  }
+
+  async buy(params = {}) {
     try {
-      return this.buy(params);
+      return await this._buy(params);
     } catch (error) {
       logError(`Error buying. Params: ${JSON.stringify(params)}.`, error);
       throw error;
     }
   }
 
-  cancelOrder(params = {}) {
+  async cancelOrder(params = {}) {
     try {
-      return this._cancelOrder(params);
+      return await this._cancelOrder(params);
     } catch (error) {
       logError(`Error canceling order. Params: ${JSON.stringify(params)}.`, error);
       throw error;
     }
   }
 
-  cancelAllOrders() {
+  async cancelAllOrders() {
     try {
-      return this._cancelAllOrders();
+      return await this._cancelAllOrders();
     } catch (error) {
       logError('Error canceling all orders:', error);
       throw error;
@@ -121,10 +132,10 @@ class Exchange {
     return this._orderBook;
   }
 
-  sell(params = {}) {
+  async sell(params = {}) {
     try {
       logInfo(`Selling @ ${this.name} (${this.tradingMode}). Sell order:`, params);
-      const result = this._sell(params);
+      const result = await this._sell(params);
       if (result) {
         logInfo(`Sold successfully @ ${this.name} (${this.tradingMode}). Sell order:`, params);
       } else {
@@ -136,21 +147,41 @@ class Exchange {
     }
   }
 
-  sellAccountPositions(params = {}) {
+  async sellAccountPositions(params = {}) {
     try {
-      return this._sellAccountPositions(params);
+      return await this._sellAccountPositions(params);
     } catch (error) {
       logError(`Error selling account position. Params: ${JSON.stringify(params)}.`, error);
       throw error;
     }
   }
 
-  sellProductPositions(params) {
+  async sellProductPositions(params) {
     try {
-      return this._sellProductPositions(params);
+      return await this._sellProductPositions(params);
     } catch (error) {
       logError(`Error selling product positions. Params: ${JSON.stringify(params)}.`, error);
       throw error;
+    }
+  }
+
+  async updateAccountBalances(params = {}) {
+    try {
+      return await this._updateAccountBalances(params);
+    } catch (error) {
+      logError(`Error retrieving Account Balances on ${this.name}. Params: ${JSON.stringify(params)}`, error);
+      throw error;
+    }
+  }
+
+  async updateProductBalance(params = {}) {
+    try {
+      const result = await this._updateProductBalance(params);
+      return result;
+    } catch (error) {
+      logError(`Error retrieving Product Balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
+      return Promise.reject(error);
+      // throw error;
     }
   }
 }
