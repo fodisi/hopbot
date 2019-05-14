@@ -43,6 +43,37 @@ class GdaxExchange extends Exchange {
     return true;
   }
 
+  // eslint-disable-next-line no-unused-vars
+  async _updateAccountBalances(params = {}) {
+    try {
+      const balances = {};
+      const accounts = await this.authClient.getAccounts();
+      logTrace('GDAX API - getAccounts response:', accounts);
+      Object.values(accounts).forEach((item) => {
+        balances[item.currency] = item;
+      });
+      this._balances = balances;
+      logDebug(`Account balances on ${this.name}:`, this._balances);
+      Promise.resolve(true);
+    } catch (error) {
+      logError(`Error updating account balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
+      Promise.reject(error);
+    }
+  }
+
+  async _updateProductBalance(params = {}) {
+    try {
+      const balance = await this.authClient.getAccount(params.id);
+      logTrace('GDAX API - getAccount response:', balance);
+      this._balances[balance.currency] = balance;
+      logDebug(`Product "${balance.currency}" balance on ${this.name}:`, balance);
+      Promise.resolve(true);
+    } catch (error) {
+      logError(`Error updating product balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
+      Promise.reject(error);
+    }
+  }
+
   _loadOrderBook() {
     if (!this._orderBook) {
       try {
@@ -83,6 +114,7 @@ class GdaxExchange extends Exchange {
     return orderParams;
   }
 
+  // TODO: Properly create Promise.
   // eslint-disable-next-line no-unused-vars
   async _sell(params) {
     try {
@@ -90,15 +122,17 @@ class GdaxExchange extends Exchange {
       if (this.tradingMode === TradingMode.LIVE) {
         const orderParams = this._parseOrderParams(params);
         result = await this.authClient.sell(orderParams);
+        logTrace('GDAX API - sell response:', result);
       } else {
         // TODO: Handle PAPER and SIMULATION scenarios.
         result = Promise.resolve(true);
       }
-      // Implement logic when placing sell orders (Add to list of open orders?).
+      // TODO: Implement logic when placing sell orders (Add to list of open orders?).
+      // TODO: Better return for promises.
       return result;
     } catch (error) {
       logError('', error);
-      throw error;
+      return Promise.reject(error);
     }
   }
 
