@@ -36,6 +36,7 @@ class GdaxExchange extends Exchange {
 
   _connect() {
     this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
+    this._updateAccountBalances();
     if (!this._loadOrderBook()) {
       this.connectionStatus = ConnectionStatus.ERROR;
       return false;
@@ -78,7 +79,7 @@ class GdaxExchange extends Exchange {
     if (!this._orderBook) {
       try {
         logTrace(`Loading order book. API URI: ${this.apiUri}. WS URI: ${this.wsUri}`);
-        this._orderBook = new OrderbookSync(this.products, this.apiUri, this.wsUri, this.auth);
+        this._orderBook = new OrderbookSync(this.instruments, this.apiUri, this.wsUri, this.auth);
         this.listenOrderBookMessages();
       } catch (error) {
         logError('Error loading orderbook.', error);
@@ -96,7 +97,7 @@ class GdaxExchange extends Exchange {
     const orderParams = {
       type: params.orderType === OrderType.MARKET ? 'market' : 'limit',
       side: params.side,
-      product_id: params.productId,
+      product_id: params.instrumentId,
     };
 
     // Defaults to size; then, checks for funds.
@@ -122,7 +123,10 @@ class GdaxExchange extends Exchange {
       if (this.tradingMode === TradingMode.LIVE) {
         const orderParams = this._parseOrderParams(params);
         result = await this.authClient.sell(orderParams);
-        logTrace('GDAX API - sell response:', result);
+        logDebug('GDAX API - sell response:', result);
+        // Update balances after sell order.
+        // TODO: Balance update should happen when orders are matched, not placed.
+        this._updateAccountBalances();
       } else {
         // TODO: Handle PAPER and SIMULATION scenarios.
         result = Promise.resolve(true);
@@ -178,7 +182,7 @@ class GdaxExchange extends Exchange {
         case 'match':
           this._last_price = data.price;
           this.strategies.updateMarketData({
-            productId: data.product_id,
+            instrumentId: data.product_id,
             eventType: data.type,
             size: data.size,
             price: data.price,
