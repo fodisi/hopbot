@@ -20,7 +20,13 @@ function handleStdinInput(exchange) {
     switch (line[0].toUpperCase()) {
       case 'S':
         console.log(line);
-        exchange.sell({});
+        exchange.sell({
+          instrumentId: 'BTC-USD',
+          orderType: 'LIMIT',
+          size: 0.001,
+          funds: 0,
+          price: 29533.78,
+        });
         break;
       case 'L':
         exchange.updateAccountBalances();
@@ -44,16 +50,18 @@ function handleStdinInput(exchange) {
 
 function loadStrategies(exchange) {
   const params = {
-    'LTC-USD': {
-      stopLossAt: 88.19,
+    'BTC-USD': {
+      stopLossAt: 221.1,
       lossOrderType: 'MARKET', // StrategyConfig.OrderType
-      lossSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+      lossSize: 0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       lossFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
+      lossPercent: 10,
       lossPrice: 0, // Used for LIMIT orders
-      takeProfitAt: 88.47,
+      takeProfitAt: 223.5,
       profitOrderType: 'MARKET', // StrategyConfig.OrderType
-      profitSize: 1, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+      profitSize: 0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       profitFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
+      profitPercent: 50,
       profitPrice: 0, // Used for LIMIT orders
     },
   };
