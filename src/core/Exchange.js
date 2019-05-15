@@ -16,11 +16,19 @@ class Exchange {
     this.authClient = undefined;
     this.publicClient = undefined;
     this._orderBook = undefined;
+    // {
+    //   BTC : {
+    //     id: '',
+    //     balance: 0.0,
+    //     hold: 0.0,
+    //     available: 0.0,
+    //   },
+    // }
     this._balances = {};
 
     this.name = options.name || '';
     this.auth = options.auth || {};
-    this.products = options.products || [];
+    this.instruments = options.instruments || [];
     this.apiMode = options.apiMode || APIMode.PRODUCTION;
     this.tradingMode = options.tradingMode || TradingMode.LIVE;
     this.strategies = new StrategyManager(this);
@@ -137,9 +145,12 @@ class Exchange {
       logInfo(`Selling @ ${this.name} (${this.tradingMode}). Sell order:`, params);
       const result = await this._sell(params);
       if (result) {
-        logInfo(`Sold successfully @ ${this.name} (${this.tradingMode}). Sell order:`, params);
+        logInfo(`Sell order placed on ${this.name} (${this.tradingMode}). Sell order:`, params);
       } else {
-        logInfo(`Error selling @ ${this.name} (${this.tradingMode}). Sell order:`, params);
+        logInfo(
+          `Error selling @ ${this.name} (${this.tradingMode}). Sell order: ${JSON.stringify(params)}. API Result:`,
+          result
+        );
       }
     } catch (error) {
       logError(`Error selling (${this.tradingMode}). Params: ${JSON.stringify(params)}.`, error);
