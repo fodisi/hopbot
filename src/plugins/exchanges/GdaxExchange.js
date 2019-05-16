@@ -21,8 +21,27 @@ class GdaxExchange extends Exchange {
   }
 
   // eslint-disable-next-line no-unused-vars
-  _buy(params = {}) {
-    return Promise.resolve(false);
+  async _buy(params = {}) {
+    try {
+      let result;
+      if (this.tradingMode === TradingMode.LIVE) {
+        const orderParams = this._parseOrderParams(params);
+        result = await this.authClient.buy(orderParams);
+        logDebug('GDAX API - buy response:', result);
+        // Update balances after buy order.
+        // TODO: Balance update should happen when orders are matched, not placed.
+        this._updateAccountBalances();
+      } else {
+        // TODO: Handle PAPER and SIMULATION scenarios.
+        result = Promise.resolve(true);
+      }
+      // TODO: Implement logic when placing buy orders (Add to list of open orders?).
+      // TODO: Better return for promises.
+      return result;
+    } catch (error) {
+      logError('', error);
+      return Promise.reject(error);
+    }
   }
 
   _cancelAllOrders() {
