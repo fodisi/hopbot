@@ -63,37 +63,6 @@ class GdaxExchange extends Exchange {
     return true;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  async _updateAccountBalances(params = {}) {
-    try {
-      const balances = {};
-      const accounts = await this.authClient.getAccounts();
-      logTrace('GDAX API - getAccounts response:', accounts);
-      Object.values(accounts).forEach((item) => {
-        balances[item.currency] = item;
-      });
-      this._balances = balances;
-      logDebug(`Account balances on ${this.name}:`, this._balances);
-      Promise.resolve(true);
-    } catch (error) {
-      logError(`Error updating account balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
-      Promise.reject(error);
-    }
-  }
-
-  async _updateProductBalance(params = {}) {
-    try {
-      const balance = await this.authClient.getAccount(params.id);
-      logTrace('GDAX API - getAccount response:', balance);
-      this._balances[balance.currency] = balance;
-      logDebug(`Product "${balance.currency}" balance on ${this.name}:`, balance);
-      Promise.resolve(true);
-    } catch (error) {
-      logError(`Error updating product balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
-      Promise.reject(error);
-    }
-  }
-
   _loadOrderBook() {
     if (!this._orderBook) {
       try {
@@ -172,6 +141,37 @@ class GdaxExchange extends Exchange {
   // eslint-disable-next-line no-unused-vars
   _sendOrder(params = {}) {
     Promise.resolve(false);
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  async _updateAccountBalances(params = {}) {
+    try {
+      const balances = {};
+      const accounts = await this.authClient.getAccounts();
+      logTrace('GDAX API - getAccounts response:', accounts);
+      Object.values(accounts).forEach((item) => {
+        balances[item.currency] = item;
+      });
+      this._balances = balances;
+      logDebug(`Account balances on ${this.name}:`, this._balances);
+      Promise.resolve(true);
+    } catch (error) {
+      logError(`Error updating account balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
+      Promise.reject(error);
+    }
+  }
+
+  async _updateProductBalance(params = {}) {
+    try {
+      const balance = await this.authClient.getAccount(params.id);
+      logTrace('GDAX API - getAccount response:', balance);
+      this._balances[balance.currency] = balance;
+      logDebug(`Product "${balance.currency}" balance on ${this.name}:`, balance);
+      Promise.resolve(true);
+    } catch (error) {
+      logError(`Error updating product balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
+      Promise.reject(error);
+    }
   }
 
   listenOrderBookMessages() {
