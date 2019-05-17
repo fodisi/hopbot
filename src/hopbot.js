@@ -8,6 +8,38 @@ import StopLossTakeProfit from './plugins/strategies/StopLossTakeProfit';
 
 // const readline = require('readline');
 
+function parseParams(line) {
+  const inputs = line.substring(2).split(' ');
+  console.log(inputs);
+  const params = {};
+  inputs.forEach((item) => {
+    const keyValue = item.split('=');
+    switch (keyValue[0].toUpperCase()) {
+      case 'P':
+        params.price = Number(keyValue[1]);
+        break;
+      case 'F':
+        params.funds = Number(keyValue[1]);
+        break;
+      case 'T':
+        // eslint-disable-next-line prefer-destructuring
+        params.orderType = keyValue[1].toUpperCase();
+        break;
+      case 'S':
+        params.size = Number(keyValue[1]);
+        break;
+      case 'I':
+        // eslint-disable-next-line prefer-destructuring
+        params.instrumentId = keyValue[1];
+        break;
+      default:
+        break;
+    }
+  });
+  console.log(params);
+  return params;
+}
+
 function handleStdinInput(exchange) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -20,14 +52,13 @@ function handleStdinInput(exchange) {
     switch (line[0].toUpperCase()) {
       case 'S':
         console.log(line);
-        exchange.sell({
-          instrumentId: 'BTC-USD',
-          orderType: 'LIMIT',
-          size: 0.001,
-          funds: 0,
-          price: 29533.78,
-        });
+        exchange.sell(parseParams(line));
         break;
+      case 'B': {
+        console.log(line);
+        exchange.buy(parseParams(line));
+        break;
+      }
       case 'L':
         exchange.updateAccountBalances();
         break;
@@ -39,7 +70,6 @@ function handleStdinInput(exchange) {
         } catch (error) {
           console.log(error);
         }
-
         break;
       }
       default:
