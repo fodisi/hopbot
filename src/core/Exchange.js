@@ -69,6 +69,11 @@ class Exchange {
   }
 
   // eslint-disable-next-line no-unused-vars
+  _parseOrderParams(params) {
+    throw new Error('Not implemented.');
+  }
+
+  // eslint-disable-next-line no-unused-vars
   _sell(params = {}) {
     return Promise.reject(new Error('Not implemented.'));
   }
