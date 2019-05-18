@@ -4,7 +4,7 @@
 import { AuthenticatedClient, OrderbookSync } from 'gdax';
 import Exchange from '../../core/Exchange';
 import { APIType, APIMode, ConnectionStatus, TradingMode } from '../../core/ExchangeConfig';
-import { logTrace, logError, logDebug } from '../../core/logger';
+import { logTrace, logError, logDebug, logInfo } from '../../core/logger';
 import { OrderType } from '../../core/StrategyConfig';
 
 class GdaxExchange extends Exchange {
@@ -111,7 +111,7 @@ class GdaxExchange extends Exchange {
       if (this.tradingMode === TradingMode.LIVE) {
         const orderParams = this._parseOrderParams(params);
         result = await this.authClient.sell(orderParams);
-        logDebug('GDAX API - sell response:', result);
+        logInfo(`Sell order placed on ${this.name}. API response:`, result);
         // Update balances after sell order.
         // TODO: Balance update should happen when orders are matched, not placed.
         this._updateAccountBalances();
