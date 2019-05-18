@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import Strategy from '../../core/Strategy';
-import { logError, logDebug, logTrace } from '../../core/logger';
+import { logError, logDebug, logTrace, logInfo } from '../../core/logger';
 import { OrderType, SignalType } from '../../core/StrategyConfig';
 import { getSellProductFromInstrument } from '../../helpers/interoperability';
 
@@ -56,14 +56,20 @@ class StopLossTakeProfit extends Strategy {
       return;
     }
 
-    if (this._isPriceWithinRange && data.price <= config.stopLossAt) {
+    const availableBalance =
+      this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0;
+    logDebug(
+      `PriceWithinRange: ${this._isPriceWithinRange}; CurPrice: ${data.price}; stopAt: ${
+        config.stopLossAt
+      }AvailableBalance: ${availableBalance}`
+    );
+
+    if (this._isPriceWithinRange && data.price <= config.stopLossAt && availableBalance > 0) {
       let lossSize = 0;
       if (config.lossSize && config.lossSize > 0) {
         // eslint-disable-next-line prefer-destructuring
-        lossSize = config.lossSize;
+        lossSize = config.lossSize <= availableBalance ? config.lossSize : availableBalance;
       } else if (config.lossPercent && config.lossPercent > 0) {
-        const availableBalance =
-          this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0;
         lossSize = (config.lossPercent * availableBalance) / 100;
       }
       params = {
@@ -75,14 +81,12 @@ class StopLossTakeProfit extends Strategy {
       };
       this.signal = SignalType.SELL;
       logDebug(`StopLoss signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
-    } else if (this._isPriceWithinRange && data.price >= config.takeProfitAt) {
+    } else if (this._isPriceWithinRange && data.price >= config.takeProfitAt && availableBalance > 0) {
       let profitSize = 0;
       if (config.profitSize && config.profitSize > 0) {
         // eslint-disable-next-line prefer-destructuring
-        profitSize = config.profitSize;
+        profitSize = config.profitSize <= availableBalance ? config.profitSize : availableBalance;
       } else if (config.profitPercent && config.profitPercent > 0) {
-        const availableBalance =
-          this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0;
         profitSize = (config.profitPercent * availableBalance) / 100;
       }
       params = {
@@ -102,7 +106,8 @@ class StopLossTakeProfit extends Strategy {
     logTrace(`Signal ${this.signal}`);
     if (!this._signalOnly && this.signal === SignalType.SELL) {
       try {
-        await this.exchange.sell(params);
+        const result = await this.exchange.sell(params);
+        logInfo('StopLossTakeProfit sell result received:', result);
         // TODO: handle disabling strategy.
       } catch (error) {
         logError('', error);
