@@ -12,8 +12,8 @@ const conf = {
     apiMode: 'PRODUCTION',
     // auth: credentials.gdax.sandbox,
     // apiMode: 'SANDBOX',
-    tradingMode: 'PAPER',
-    // tradingMode: 'LIVE',
+    // tradingMode: 'PAPER',
+    tradingMode: 'LIVE',
   },
 };
 

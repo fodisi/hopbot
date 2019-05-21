@@ -80,19 +80,19 @@ function handleStdinInput(exchange) {
 
 function loadStrategies(exchange) {
   const params = {
-    'BTC-USD': {
-      stopLossAt: 221.1,
+    'LTC-USD': {
+      stopLossAt: 91.15,
       lossOrderType: 'MARKET', // StrategyConfig.OrderType
       lossSize: 0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       lossFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-      lossPercent: 10,
+      lossPercent: 100,
       lossPrice: 0, // Used for LIMIT orders
-      takeProfitAt: 223.5,
-      profitOrderType: 'MARKET', // StrategyConfig.OrderType
+      takeProfitAt: 93.25,
+      profitOrderType: 'LIMIT', // StrategyConfig.OrderType
       profitSize: 0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       profitFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-      profitPercent: 50,
-      profitPrice: 0, // Used for LIMIT orders
+      profitPercent: 100,
+      profitPrice: 93.25, // Used for LIMIT orders
     },
   };
   const strategy = new StopLossTakeProfit('StopLossTakeProfit', params);
