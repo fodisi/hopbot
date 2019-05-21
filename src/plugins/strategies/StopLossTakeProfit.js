@@ -2,6 +2,7 @@
 import Strategy from '../../core/Strategy';
 import { logError, logDebug, logTrace, logInfo } from '../../core/logger';
 import { OrderType, SignalType } from '../../core/StrategyConfig';
+import { TradingMode } from '../../core/ExchangeConfig';
 import { getSellProductFromInstrument } from '../../helpers/interoperability';
 
 class StopLossTakeProfit extends Strategy {
@@ -57,12 +58,9 @@ class StopLossTakeProfit extends Strategy {
     }
 
     const availableBalance =
-      this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0;
-    logDebug(
-      `PriceWithinRange: ${this._isPriceWithinRange}; CurPrice: ${data.price}; stopAt: ${
-        config.stopLossAt
-      }AvailableBalance: ${availableBalance}`
-    );
+      this.exchange.tradingMode === TradingMode.LIVE
+        ? this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0
+        : 1; // For now, if not Live, just needs to be bigger than zero to pass test below.
 
     if (this._isPriceWithinRange && data.price <= config.stopLossAt && availableBalance > 0) {
       let lossSize = 0;
@@ -102,8 +100,12 @@ class StopLossTakeProfit extends Strategy {
       this.signal = SignalType.NONE;
     }
 
-    logTrace(`IsPriceWithinRange: ${this._isPriceWithinRange}`);
-    logTrace(`Signal ${this.signal}`);
+    logTrace(
+      `isPriceWithinRange: ${this._isPriceWithinRange}\tCurPrice: ${data.price};\tstopLossAt: ${
+        config.stopLossAt
+      }\ttakeProfitAt${config.takeProfitAt}\tAvailableBalance: ${availableBalance}\tSignal ${this.signal}`
+    );
+
     if (!this._signalOnly && this.signal === SignalType.SELL) {
       try {
         const result = await this.exchange.sell(params);
