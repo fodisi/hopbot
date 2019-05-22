@@ -33,6 +33,11 @@ class Strategy {
     return Promise.reject(new Error('Not implemented.'));
   }
 
+  // eslint-disable-next-line no-unused-vars
+  _validateConfigs(config) {
+    throw new Error('Not implemented');
+  }
+
   execute(data) {
     if (!this.exchange) {
       logError(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
@@ -93,14 +98,22 @@ class Strategy {
     throw new Error('Not implemented.');
   }
 
-  updateParams(params) {
+  updateConfig(config) {
     if (this._enabled || this._executing) {
-      const error = new Error(`Cannot update params. Strategy is enabled or executing (id: ${this._id}).`);
+      const error = new Error(`Cannot update configs for strategy id ${this._id}. Strategy is enabled or executing.`);
       logError('', error);
       throw error;
     }
 
-    this.config = params;
+    if (!this._validateConfigs(config)) {
+      const error = new Error(
+        `Cannot update configs for strategy id ${this._id}. Invalid configs: ${JSON.stringify(config)}.`
+      );
+      logError('', error);
+      throw error;
+    }
+
+    this.config = config;
   }
 }
 
