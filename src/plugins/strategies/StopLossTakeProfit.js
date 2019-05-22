@@ -1,41 +1,72 @@
 /* eslint-disable no-underscore-dangle */
 import Strategy from '../../core/Strategy';
-import { logError, logDebug, logTrace, logInfo } from '../../core/logger';
+import { logError, logDebug, logTrace, logInfo, logWarn } from '../../core/logger';
 import { OrderType, SignalType } from '../../core/StrategyConfig';
 import { TradingMode } from '../../core/ExchangeConfig';
 import { getSellProductFromInstrument } from '../../helpers/interoperability';
 
+/**
+ * @name StopLossTakeProfit
+ * @description A strategy that allows set StopLoss and TakeProfit targets.
+ */
 class StopLossTakeProfit extends Strategy {
+  /**
+   * @typedef InstrumentConfig Specific configs for the instrument id.
+   * @type { Object }
+   * @property { number } stopLossAt The price that triggers a stop loss sell order.
+   * @property { string } lossOrderType The order type('LIMIT', 'MARKET') to be used for the stop loss order.
+   * @property { number } lossSize Amount in Base Currency (Ex: BTC/USD, size in BTC)
+   * @property { number } lossFunds Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
+   * @property { number } lossPercent Percent (%) of available balance size to sell.
+   * @property { number } lossPrice Used for LIMIT orders. Sell price for the stop loss limit order.
+   * @property { number } takeProfitAt The price that triggers a take profit sell order.
+   * @property { string } profitOrderType The order type('LIMIT', 'MARKET') to be used for the take profit order.
+   * @property { number } profitSize Amount in Base Currency (Ex: BTC/USD, size in BTC)
+   * @property { number } profitFunds Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
+   * @property { number } profitPercent Percent (%) of available balance size to sell.
+   * @property { number } profitPrice Used for LIMIT orders. Sell price for the take profit limit order.
+   */
   /**
    * Creates an {StopLossProfitSell} object.
    * @param {string} name Strategy name
-   * @param {Dictionary} config Strategy params.
-   *    params = {
-   *        'instrument-id': {
-   *            stopLossAt: 0.0,
-   *            lossOrderType: '', // StrategyConfig.OrderType
-   *            lossSize: 0.0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
-   *            lossFunds: 0.0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-   *            lossPercent: 0, // FUTURE USE - % of available balance size to sell.
-   *            lossPrice: 0.0, // Used for LIMIT orders
-   *            takeProfitAt: 0.0,
-   *            profitOrderType: '', // StrategyConfig.OrderType
-   *            profitSize: 0.0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
-   *            profitFunds: 0.0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-   *            profitPercent: 0.0, // FUTURE USE - % of available balance size to sell.
-   *            profitPrice: 0.0, // Used for LIMIT orders
-   *        }
-   *    }
+   * @param {Object.<string, InstrumentConfig>} config Strategy configs for a set of instruments (at least one).
    * @see {StrategyConfig.OrderType}
    */
   constructor(name, config = {}, signalOnly = false) {
     super(name || 'StopLossProfitSell', config, signalOnly);
     // Controls if price action is within strategy's price range to avoid false triggers and conflicts with other strategies.
     this._isPriceWithinRange = false;
-    // TODO: Validate config params.
+    // Identifies if strategy was already executed or not.
+    this._executed = false;
+
+    if (!this._validateConfigs(config)) {
+      throw new Error('Unable to create strategy StopLossTakeProfit. Invalid config.');
+    }
+  }
+
+  enable() {
+    super.enable();
+    logInfo(`Strategy "${this.name}" enabled with the following params:`, this.config);
+    Object.keys(this.config).forEach((instrument) => {
+      const data = this.config[instrument];
+      const product = getSellProductFromInstrument(instrument, this.exchange.name);
+      const availableBalance = this.exchange._balances[product].available;
+      if (availableBalance && (data.lossPercent === 0 || data.profitPercent === 0)) {
+        logWarn(
+          `You have ${product} ${availableBalance} available, but you are not using "lossPercent" or "profitPercent".`
+        );
+      }
+    });
   }
 
   async _execute(data = {}) {
+    if (this._executed) {
+      logError(
+        `Strategy ${this._id} - Already executed on ${this.exchange.name} for instrument id "${data.instrumentId}".`
+      );
+      return;
+    }
+
     const config = this.config[data.instrumentId];
     let params;
 
@@ -54,7 +85,6 @@ class StopLossTakeProfit extends Strategy {
     if (!this._isPriceWithinRange && data.price >= config.stopLossAt && data.price <= config.takeProfitAt) {
       this._isPriceWithinRange = true;
       logDebug(`Strategy ${this._id} - Triggered "isWithinPriceRange @ ${data.price}.`);
-      return;
     }
 
     const availableBalance =
@@ -108,17 +138,73 @@ class StopLossTakeProfit extends Strategy {
 
     if (!this._signalOnly && this.signal === SignalType.SELL) {
       try {
+        this._executed = true;
         const result = await this.exchange.sell(params);
         logInfo('StopLossTakeProfit sell result received:', result);
-        // TODO: handle disabling strategy.
       } catch (error) {
+        this._executed = false;
         logError('', error);
       }
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  _validateConfigs(config) {
+    logDebug('Validating strategy configs.', config);
+    let valid = true;
+    Object.values(config).forEach((element) => {
+      if (!valid) {
+        return;
+      }
+
+      if (element.stopLossAt <= 0 || element.takeProfitAt <= 0) {
+        logError('config.stopLossAt <= 0 || config.takeProfitAt <= 0');
+        valid = false;
+        return;
+      }
+      if (element.stopLossAt >= element.takeProfitAt) {
+        logError('config.stopLossAt >= config.takeProfitAt');
+        valid = false;
+        return;
+      }
+      if (!OrderType[element.lossOrderType] || !OrderType[element.profitOrderType]) {
+        logError('!OrderType[config.lossOrderType] || !OrderType[config.profitOrderType]');
+        valid = false;
+        return;
+      }
+      if (element.lossOrderType === OrderType.LIMIT && element.lossPrice <= element.stopLossAt) {
+        logError('config.lossOrderType === OrderType.LIMIT && config.lossPrice <= config.stopLossAt');
+        valid = false;
+        return;
+      }
+      if (element.profitOrderType === OrderType.LIMIT && element.profitPrice <= element.takeProfitAt) {
+        logError('config.profitOrderType === OrderType.LIMIT && config.profitPrice <= config.takeProfitAt');
+        valid = false;
+        return;
+      }
+      if (element.lossSize <= 0 && element.lossFunds <= 0 && element.lossPercent <= 0) {
+        logError('config.lossSize <= 0 && config.lossFunds <= 0 && config.lossPercent <= 0');
+        valid = false;
+        return;
+      }
+      if (element.profitSize <= 0 && element.profitFunds <= 0 && element.profitPercent <= 0) {
+        logError('config.profitSize <= 0 && config.profitFunds <= 0 && config.profitPercent <= 0');
+        valid = false;
+        return;
+      }
+      if (element.lossPercent > 100 || element.profitPercent > 100) {
+        logError('config.lossPercent > 100 || config.profitPercent > 100');
+        valid = false;
+      }
+    });
+
+    return valid;
+  }
+
   updateMarketData(data = {}) {
-    this.execute(data);
+    if (!this._executed) {
+      this.execute(data);
+    }
   }
 }
 
