@@ -53,14 +53,66 @@ class GdaxExchange extends Exchange {
     return Promise.resolve(false);
   }
 
-  _connect() {
+  async _connect() {
     this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
-    this._updateAccountBalances();
     if (!this._loadOrderBook()) {
       this.connectionStatus = ConnectionStatus.ERROR;
       return false;
     }
+
+    const result = await this._updateAccountBalances();
+    if (!result) {
+      this.connectionStatus = ConnectionStatus.ERROR;
+      return false;
+    }
+
     return true;
+  }
+
+  _listenOrderBookMessages() {
+    if (!this._orderBook) {
+      return;
+    }
+
+    this._orderBook.on('open', (data) => {
+      this.connectionStatus = ConnectionStatus.CONNECTED;
+      logTrace('Order book message "open":', data);
+    });
+
+    this._orderBook.on('sync', (data) => {
+      logTrace('Order book message "sync":', data);
+    });
+
+    this._orderBook.on('synced', (data) => {
+      logTrace('Order book message "synced":', data);
+    });
+
+    this._orderBook.on('message', (data) => {
+      // this._stats = {
+      //   updated: new Date(),
+      //   last_msg: data,
+      // };
+      switch (data.type) {
+        case 'match':
+          this._last_price = data.price;
+          this.strategies.updateMarketData({
+            instrumentId: data.product_id,
+            eventType: data.type,
+            size: data.size,
+            price: data.price,
+            side: data.side,
+          });
+          logTrace('Order book message "message":', data);
+          logDebug(`Match:\t${data.side}\t${data.size}\t${data.price}\t${new Date(data.time).toLocaleTimeString()}.`);
+          break;
+        default:
+          logTrace(data.type);
+          break;
+      }
+    });
+    this._orderBook.on('error', (error) => {
+      logError('OrderBook Error:', error);
+    });
   }
 
   _loadOrderBook() {
@@ -68,7 +120,7 @@ class GdaxExchange extends Exchange {
       try {
         logTrace(`Loading order book. API URI: ${this.apiUri}. WS URI: ${this.wsUri}`);
         this._orderBook = new OrderbookSync(this.instruments, this.apiUri, this.wsUri, this.auth);
-        this.listenOrderBookMessages();
+        this._listenOrderBookMessages();
       } catch (error) {
         logError('Error loading orderbook.', error);
         return false;
@@ -172,52 +224,6 @@ class GdaxExchange extends Exchange {
       logError(`Error updating product balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
       Promise.reject(error);
     }
-  }
-
-  listenOrderBookMessages() {
-    if (!this._orderBook) {
-      return;
-    }
-
-    this._orderBook.on('open', (data) => {
-      this.connectionStatus = ConnectionStatus.CONNECTED;
-      logTrace('Order book message "open":', data);
-    });
-
-    this._orderBook.on('sync', (data) => {
-      logTrace('Order book message "sync":', data);
-    });
-
-    this._orderBook.on('synced', (data) => {
-      logTrace('Order book message "synced":', data);
-    });
-
-    this._orderBook.on('message', (data) => {
-      // this._stats = {
-      //   updated: new Date(),
-      //   last_msg: data,
-      // };
-      switch (data.type) {
-        case 'match':
-          this._last_price = data.price;
-          this.strategies.updateMarketData({
-            instrumentId: data.product_id,
-            eventType: data.type,
-            size: data.size,
-            price: data.price,
-            side: data.side,
-          });
-          logTrace('Order book message "message":', data);
-          logDebug(`Match:\t${data.side}\t${data.size}\t${data.price}\t${new Date(data.time).toLocaleTimeString()}.`);
-          break;
-        default:
-          logTrace(data.type);
-          break;
-      }
-    });
-    this._orderBook.on('error', (error) => {
-      logError('OrderBook Error:', error);
-    });
   }
 
   getOrderBook() {
