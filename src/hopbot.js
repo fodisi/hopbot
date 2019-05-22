@@ -80,19 +80,19 @@ function handleStdinInput(exchange) {
 
 function loadStrategies(exchange) {
   const params = {
-    'LTC-USD': {
-      stopLossAt: 91.15,
+    'BTC-USD': {
+      stopLossAt: 0.24,
       lossOrderType: 'MARKET', // StrategyConfig.OrderType
-      lossSize: 0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+      lossSize: 0.002, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       lossFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-      lossPercent: 100,
-      lossPrice: 0, // Used for LIMIT orders
-      takeProfitAt: 93.25,
+      lossPercent: 0,
+      lossPrice: 0.16, // Used for LIMIT orders
+      takeProfitAt: 0.4,
       profitOrderType: 'LIMIT', // StrategyConfig.OrderType
-      profitSize: 0, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
+      profitSize: 0.002, // Amount in Base Currency (Ex: BTC/USD, size in BTC)
       profitFunds: 0, // FUTURE USE - Amount of Funds in Quote Currency (Ex: BTC/USD, funds in USD)
-      profitPercent: 100,
-      profitPrice: 93.25, // Used for LIMIT orders
+      profitPercent: 0,
+      profitPrice: 0.6, // Used for LIMIT orders
     },
   };
   const strategy = new StopLossTakeProfit('StopLossTakeProfit', params);
@@ -104,7 +104,7 @@ async function start() {
   try {
     setLogger(LogLevel.DEBUG);
     const gdax = new GdaxExchange(conf.gdax);
-    gdax.connect();
+    await gdax.connect();
     console.log(gdax.connectionStatus);
     handleStdinInput(gdax);
     loadStrategies(gdax);
