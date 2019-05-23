@@ -197,15 +197,23 @@ class GdaxExchange extends Exchange {
 
   // eslint-disable-next-line no-unused-vars
   async _updateAccountBalances(params = {}) {
+    function padStart(value = '', pad = 30) {
+      return value.padStart(pad, ' ');
+    }
+
     try {
       const balances = {};
       const accounts = await this.authClient.getAccounts();
       logTrace('GDAX API - getAccounts response:', accounts);
+      logDebug(`Account balances on ${this.name}:`);
+      logDebug(`${padStart('Currency', 10)}${padStart('Balance')}${padStart('Hold')}${padStart('Available')}`);
       Object.values(accounts).forEach((item) => {
         balances[item.currency] = item;
+        logDebug(
+          `${padStart(item.currency, 10)}${padStart(item.balance)}${padStart(item.hold)}${padStart(item.available)}`
+        );
       });
       this._balances = balances;
-      logDebug(`Account balances on ${this.name}:`, this._balances);
       Promise.resolve(true);
     } catch (error) {
       logError(`Error updating account balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
