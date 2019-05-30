@@ -6,6 +6,7 @@ import Exchange from '../../core/Exchange';
 import { APIType, APIMode, ConnectionStatus, TradingMode } from '../../core/ExchangeConfig';
 import { logTrace, logError, logDebug, logInfo } from '../../core/logger';
 import { OrderType } from '../../core/StrategyConfig';
+import { truncate } from '../../helpers/numbers';
 
 class GdaxExchange extends Exchange {
   constructor(options = {}) {
@@ -140,15 +141,16 @@ class GdaxExchange extends Exchange {
       product_id: params.instrumentId,
     };
 
+    // TODO: get decimal precision from product config.
     // Defaults to size; then, checks for funds.
     if (params.size && params.size > 0) {
-      orderParams.size = params.size.toString();
+      orderParams.size = truncate(params.size, 8).toString();
     } else if (params.funds && params.funds > 0) {
-      orderParams.funds = params.funds.toString();
+      orderParams.funds = truncate(params.funds, 2).toString();
     }
 
     if (params.orderType !== OrderType.MARKET && params.price && params.price > 0) {
-      orderParams.price = params.price.toString();
+      orderParams.price = truncate(params.price, 2).toString();
     }
 
     logDebug('Order params parsed:', orderParams);
