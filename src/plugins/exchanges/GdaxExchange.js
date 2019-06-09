@@ -77,6 +77,8 @@ class GdaxExchange extends Exchange {
 
     this._orderBook.on('open', (data) => {
       this.connectionStatus = ConnectionStatus.CONNECTED;
+      const self = this;
+      setInterval(() => self._updateAccountBalances(), 10000);
       logTrace('Order book message "open":', data);
     });
 
