@@ -38,7 +38,7 @@ class Strategy {
     throw new Error('Not implemented');
   }
 
-  execute(data) {
+  async execute(data) {
     if (!this.exchange) {
       logError(`Fail to execute. Strategy is not registered (id: ${this._id}).`);
       this.signal = SignalType.NONE;
@@ -61,7 +61,7 @@ class Strategy {
 
     try {
       this._executing = true;
-      this._execute(data);
+      await this._execute(data);
       this._executing = false;
       return true;
     } catch (error) {

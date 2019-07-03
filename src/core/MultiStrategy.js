@@ -47,7 +47,7 @@ class MultiStrategy extends Strategy {
     }
 
     if (type !== SignalConfirmationType.ALL && type !== SignalConfirmationType.MINIMUM) {
-      const error = new Error(`Invalid buy SignalConfirmationType "${type}" for strategy id "${this._id}".`);
+      const error = new Error(`Invalid sell SignalConfirmationType "${type}" for strategy id "${this._id}".`);
       logError('', error);
       throw error;
     }
