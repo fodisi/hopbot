@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-underscore-dangle */
 
@@ -21,7 +22,6 @@ class GdaxExchange extends Exchange {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
   async _buy(params = {}) {
     try {
       let result;
@@ -49,25 +49,14 @@ class GdaxExchange extends Exchange {
     return Promise.resolve(false);
   }
 
-  // eslint-disable-next-line no-unused-vars
   _cancelOrder(params = {}) {
     return Promise.resolve(false);
   }
 
   async _connect() {
     this.authClient = new AuthenticatedClient(this.auth.key, this.auth.secret, this.auth.passphrase, this.apiUri);
-    if (!this._loadOrderBook()) {
-      this.connectionStatus = ConnectionStatus.ERROR;
-      return false;
-    }
-
-    const result = await this._updateAccountBalances();
-    if (!result) {
-      this.connectionStatus = ConnectionStatus.ERROR;
-      return false;
-    }
-
-    return true;
+    await this._loadOrderBook();
+    await this._updateAccountBalances();
   }
 
   _listenOrderBookMessages() {
@@ -118,7 +107,7 @@ class GdaxExchange extends Exchange {
     });
   }
 
-  _loadOrderBook() {
+  async _loadOrderBook() {
     if (!this._orderBook) {
       try {
         logTrace(`Loading order book. API URI: ${this.apiUri}. WS URI: ${this.wsUri}`);
@@ -126,10 +115,10 @@ class GdaxExchange extends Exchange {
         this._listenOrderBookMessages();
       } catch (error) {
         logError('Error loading orderbook.', error);
-        return false;
+        return Promise.reject(error);
       }
     }
-    return true;
+    return Promise.resolve();
   }
 
   /**
@@ -160,7 +149,6 @@ class GdaxExchange extends Exchange {
   }
 
   // TODO: Properly create Promise.
-  // eslint-disable-next-line no-unused-vars
   async _sell(params) {
     try {
       let result;
@@ -184,22 +172,18 @@ class GdaxExchange extends Exchange {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
   _sellAccountPositions(params) {
     Promise.resolve(false);
   }
 
-  // eslint-disable-next-line no-unused-vars
   _sellProductPositions(params = {}) {
     Promise.resolve(false);
   }
 
-  // eslint-disable-next-line no-unused-vars
   _sendOrder(params = {}) {
     Promise.resolve(false);
   }
 
-  // eslint-disable-next-line no-unused-vars
   async _updateAccountBalances(params = {}) {
     function padStart(value = '', pad = 30) {
       return value.padStart(pad, ' ');
@@ -218,10 +202,9 @@ class GdaxExchange extends Exchange {
         );
       });
       this._balances = balances;
-      Promise.resolve(true);
     } catch (error) {
       logError(`Error updating account balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
-      Promise.reject(error);
+      throw error;
     }
   }
 
@@ -236,18 +219,6 @@ class GdaxExchange extends Exchange {
       logError(`Error updating product balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
       Promise.reject(error);
     }
-  }
-
-  getOrderBook() {
-    if (!this._orderBook) {
-      try {
-        this._loadOrderBook();
-      } catch (error) {
-        logError('', error);
-        // TODO: Should throw error? If not, add documentation.
-      }
-    }
-    return this._orderBook;
   }
 }
 
