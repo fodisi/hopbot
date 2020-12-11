@@ -1,6 +1,6 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-underscore-dangle */
-
 import { APIType, APIMode, TradingMode, ConnectionStatus } from './ExchangeConfig';
 import { logInfo, logError } from './logger';
 import StrategyManager from './StrategyManager';
@@ -25,7 +25,6 @@ class Exchange {
     //   },
     // }
     this._balances = {};
-
     this.name = options.name || '';
     this.auth = options.auth || {};
     this.instruments = options.instruments || [];
@@ -46,66 +45,57 @@ class Exchange {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
-  _buy(params = {}) {
-    return Promise.resolve(false);
-  }
-
-  _cancelAllOrders() {
-    return Promise.resolve(false);
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  _cancelOrder(params = {}) {
-    return Promise.resolve(false);
-  }
-
-  _connect() {
+  async _buy(params = {}) {
     throw new Error('Not implemented.');
   }
 
-  _loadOrderBook() {
+  async _cancelAllOrders() {
     throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
+  async _cancelOrder(params = {}) {
+    throw new Error('Not implemented.');
+  }
+
+  async _connect() {
+    throw new Error('Not implemented.');
+  }
+
+  async _loadOrderBook() {
+    throw new Error('Not implemented.');
+  }
+
   _parseOrderParams(params) {
     throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
-  _sell(params = {}) {
-    return Promise.reject(new Error('Not implemented.'));
+  async _sell(params = {}) {
+    throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
-  _sellAccountPositions(params) {
-    Promise.resolve(false);
+  async _sellAccountPositions(params) {
+    throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
-  _sellProductPositions(params = {}) {
-    Promise.resolve(false);
+  async _sellProductPositions(params = {}) {
+    throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
-  _sendOrder(params = {}) {
-    Promise.resolve(false);
+  async _sendOrder(params = {}) {
+    throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
   _updateAccountBalances(params = {}) {
-    return Promise.resolve(false);
+    throw new Error('Not implemented.');
   }
 
-  // eslint-disable-next-line no-unused-vars
   _updateProductBalance(params = {}) {
-    return Promise.resolve(false);
+    throw new Error('Not implemented.');
   }
 
   async buy(params = {}) {
     try {
-      return await this._buy(params);
+      return this._buy(params);
     } catch (error) {
       logError(`Error buying. Params: ${JSON.stringify(params)}.`, error);
       throw error;
@@ -114,7 +104,7 @@ class Exchange {
 
   async cancelOrder(params = {}) {
     try {
-      return await this._cancelOrder(params);
+      return this._cancelOrder(params);
     } catch (error) {
       logError(`Error canceling order. Params: ${JSON.stringify(params)}.`, error);
       throw error;
@@ -123,14 +113,14 @@ class Exchange {
 
   async cancelAllOrders() {
     try {
-      return await this._cancelAllOrders();
+      return this._cancelAllOrders();
     } catch (error) {
       logError('Error canceling all orders:', error);
       throw error;
     }
   }
 
-  connect() {
+  async connect() {
     this.connectionStatus = ConnectionStatus.CONNECTING;
     try {
       return this._connect();
@@ -141,8 +131,11 @@ class Exchange {
     }
   }
 
-  getOrderBook() {
-    return this._orderBook;
+  async getOrderBook() {
+    if (!this._orderBook) {
+      await this._loadOrderBook();
+    }
+    return Promise.resolve(this._orderBook);
   }
 
   async sell(params = {}) {
@@ -192,8 +185,7 @@ class Exchange {
 
   async updateProductBalance(params = {}) {
     try {
-      const result = await this._updateProductBalance(params);
-      return result;
+      return this._updateProductBalance(params);
     } catch (error) {
       logError(`Error retrieving Product Balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
       return Promise.reject(error);
