@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable class-methods-use-this */
+/* eslint-disable no-unused-vars */
 
 import { logError, logDebug } from './logger';
 import { SignalType } from './StrategyConfig';
@@ -28,12 +29,10 @@ class Strategy {
     this.signal = SignalType.NONE;
   }
 
-  // eslint-disable-next-line no-unused-vars
   async _execute(data) {
     return Promise.reject(new Error('Not implemented.'));
   }
 
-  // eslint-disable-next-line no-unused-vars
   _validateConfigs(config) {
     throw new Error('Not implemented');
   }
