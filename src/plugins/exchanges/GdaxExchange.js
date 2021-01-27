@@ -41,7 +41,7 @@ class GdaxExchange extends Exchange {
       return result;
     } catch (error) {
       logError('', error);
-      return Promise.reject(error);
+      throw error;
     }
   }
 
@@ -115,10 +115,9 @@ class GdaxExchange extends Exchange {
         this._listenOrderBookMessages();
       } catch (error) {
         logError('Error loading orderbook.', error);
-        return Promise.reject(error);
+        throw error;
       }
     }
-    return Promise.resolve();
   }
 
   /**
@@ -168,7 +167,7 @@ class GdaxExchange extends Exchange {
       return result;
     } catch (error) {
       logError('', error);
-      return Promise.reject(error);
+      throw error;
     }
   }
 
@@ -219,7 +218,7 @@ class GdaxExchange extends Exchange {
       Promise.resolve(true);
     } catch (error) {
       logError(`Error updating product balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
-      Promise.reject(error);
+      throw error;
     }
   }
 }
