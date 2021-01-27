@@ -67,7 +67,7 @@ class GdaxExchange extends Exchange {
     this._orderBook.on('open', (data) => {
       this.connectionStatus = ConnectionStatus.CONNECTED;
       const self = this;
-      setInterval(() => self._updateAccountBalances(), 10000);
+      setInterval(() => self._updateAccountBalances(), self.balanceUpdateInterval);
       logTrace('Order book message "open":', data);
     });
 
@@ -195,12 +195,14 @@ class GdaxExchange extends Exchange {
       logTrace('GDAX API - getAccounts response:', accounts);
       logDebug(`Account balances on ${this.name}:`);
       logDebug(`${padStart('Currency', 10)}${padStart('Balance')}${padStart('Hold')}${padStart('Available')}`);
-      Object.values(accounts).forEach((item) => {
-        balances[item.currency] = item;
-        logDebug(
-          `${padStart(item.currency, 10)}${padStart(item.balance)}${padStart(item.hold)}${padStart(item.available)}`
-        );
-      });
+      Object.values(accounts)
+        .filter((item) => item.balance > 0)
+        .forEach((item) => {
+          balances[item.currency] = item;
+          logDebug(
+            `${padStart(item.currency, 10)}${padStart(item.balance)}${padStart(item.hold)}${padStart(item.available)}`
+          );
+        });
       this._balances = balances;
     } catch (error) {
       logError(`Error updating account balance on ${this.name}. Params: ${JSON.stringify(params)}`, error);
