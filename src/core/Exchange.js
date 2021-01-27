@@ -96,7 +96,17 @@ class Exchange {
 
   async buy(params = {}) {
     try {
-      return this._buy(params);
+      logInfo(`Buying @ ${this.name} (${this.tradingMode}). Buy order:`, params);
+      const result = await this._buy(params);
+      if (result) {
+        logInfo(`Buy order placed on ${this.name} (${this.tradingMode}). Buy order:`, params);
+      } else {
+        logInfo(
+          `Error buying @ ${this.name} (${this.tradingMode}). Buy order: ${JSON.stringify(params)}. API Result:`,
+          result
+        );
+      }
+      return result;
     } catch (error) {
       logError(`Error buying. Params: ${JSON.stringify(params)}.`, error);
       throw error;
