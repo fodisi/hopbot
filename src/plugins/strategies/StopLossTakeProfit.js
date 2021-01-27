@@ -87,10 +87,9 @@ class StopLossTakeProfit extends Strategy {
       logDebug(`Strategy ${this._id} - Triggered "isWithinPriceRange @ ${data.price}.`);
     }
 
-    const availableBalance =
-      this.exchange.tradingMode === TradingMode.LIVE
-        ? this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0
-        : 1; // For now, if not Live, just needs to be bigger than zero to pass test below.
+    const availableBalance = [TradingMode.LIVE, TradingMode.PAPER].includes(this.exchange.tradingMode)
+      ? this.exchange._balances[getSellProductFromInstrument(data.instrumentId, this.exchange.name)].available || 0
+      : 1; // For now, if not Live, just needs to be bigger than zero to pass test below.
 
     if (this._isPriceWithinRange && data.price <= config.stopLossAt && availableBalance > 0) {
       let lossSize = 0;
@@ -201,9 +200,9 @@ class StopLossTakeProfit extends Strategy {
     return valid;
   }
 
-  updateMarketData(data = {}) {
+  async updateMarketData(data = {}) {
     if (!this._executed) {
-      this.execute(data);
+      await this.execute(data);
     }
   }
 }
