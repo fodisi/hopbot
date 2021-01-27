@@ -31,6 +31,7 @@ class Exchange {
     this.apiMode = options.apiMode || APIMode.PRODUCTION;
     this.tradingMode = options.tradingMode || TradingMode.LIVE;
     this.strategies = new StrategyManager(this);
+    this.balanceUpdateInterval = options.balanceUpdateInterval || 10000;
 
     if (!APIMode[this.apiMode]) {
       const error = new Error('Invalid API Mode');
