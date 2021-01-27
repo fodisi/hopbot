@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import Strategy from '../../core/Strategy';
-import { logError, logDebug, logTrace, logInfo, logWarn } from '../../core/logger';
+import { logError, logDebug, logTrace, logInfo, logWarn, logVerbose } from '../../core/logger';
 import { OrderType, SignalType } from '../../core/StrategyConfig';
 import { TradingMode } from '../../core/ExchangeConfig';
 import { getSellProductFromInstrument } from '../../helpers/interoperability';
@@ -84,7 +84,7 @@ class StopLossTakeProfit extends Strategy {
 
     if (!this._isPriceWithinRange && data.price >= config.stopLossAt && data.price <= config.takeProfitAt) {
       this._isPriceWithinRange = true;
-      logDebug(`Strategy ${this._id} - Triggered "isWithinPriceRange @ ${data.price}.`);
+      logVerbose(`Strategy ${this._id} - Triggered "isWithinPriceRange @ ${data.price}.`);
     }
 
     const availableBalance = [TradingMode.LIVE, TradingMode.PAPER].includes(this.exchange.tradingMode)
@@ -107,7 +107,7 @@ class StopLossTakeProfit extends Strategy {
         price: config.lossOrderType === OrderType.MARKET ? 0 : config.lossPrice,
       };
       this.signal = SignalType.SELL;
-      logDebug(`StopLoss signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+      logVerbose(`StopLoss signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
     } else if (this._isPriceWithinRange && data.price >= config.takeProfitAt && availableBalance > 0) {
       let profitSize = 0;
       if (config.profitSize && config.profitSize > 0) {
@@ -124,7 +124,7 @@ class StopLossTakeProfit extends Strategy {
         price: config.profitOrderType === OrderType.MARKET ? 0 : config.profitPrice,
       };
       this.signal = SignalType.SELL;
-      logDebug(`TakeProfit signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
+      logVerbose(`TakeProfit signal @ ${data.price} on ${this.exchange.name} (Strategy ${this._id} | ${this.name}).`);
     } else {
       this.signal = SignalType.NONE;
     }

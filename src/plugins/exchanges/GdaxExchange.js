@@ -5,7 +5,7 @@
 import { AuthenticatedClient, OrderbookSync } from 'gdax';
 import Exchange from '../../core/Exchange';
 import { APIType, APIMode, ConnectionStatus, TradingMode } from '../../core/ExchangeConfig';
-import { logTrace, logError, logDebug, logInfo } from '../../core/logger';
+import { logTrace, logError, logDebug, logInfo, logVerbose } from '../../core/logger';
 import { OrderType } from '../../core/StrategyConfig';
 import { truncate } from '../../helpers/numbers';
 
@@ -193,13 +193,13 @@ class GdaxExchange extends Exchange {
       const balances = {};
       const accounts = await this.authClient.getAccounts();
       logTrace('GDAX API - getAccounts response:', accounts);
-      logDebug(`Account balances on ${this.name}:`);
-      logDebug(`${padStart('Currency', 10)}${padStart('Balance')}${padStart('Hold')}${padStart('Available')}`);
+      logVerbose(`Account balances on ${this.name}:`);
+      logVerbose(`${padStart('Currency', 10)}${padStart('Balance')}${padStart('Hold')}${padStart('Available')}`);
       Object.values(accounts)
         .filter((item) => item.balance > 0)
         .forEach((item) => {
           balances[item.currency] = item;
-          logDebug(
+          logVerbose(
             `${padStart(item.currency, 10)}${padStart(item.balance)}${padStart(item.hold)}${padStart(item.available)}`
           );
         });

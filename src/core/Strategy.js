@@ -3,7 +3,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-vars */
 
-import { logError, logDebug } from './logger';
+import { logError, logDebug, logWarn } from './logger';
 import { SignalType } from './StrategyConfig';
 
 /**
@@ -53,7 +53,7 @@ class Strategy {
     // TODO: handle asynchronous concurrency.
     // TODO: Queue executions.
     if (this._executing) {
-      logError(`Fail to execute. Strategy id "${this._id}" is already executing.`);
+      logWarn(`Cannot execute. Strategy id "${this._id}" is already executing.`);
       this.signal = SignalType.NONE;
       return false;
     }
